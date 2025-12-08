@@ -1,2 +1,2 @@
 # strava-wrapped
-sträva wrapped
+strava wrapped

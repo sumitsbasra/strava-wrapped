@@ -2859,11 +2859,20 @@
       // Fix for html2canvas and fixed position background
       const bg = document.getElementById('gradientSpotlight');
       let originalPos = '';
+      let originalTop = '';
+      let originalLeft = '';
+
       if (bg) {
         originalPos = bg.style.position;
+        originalTop = bg.style.top;
+        originalLeft = bg.style.left;
+
         bg.style.position = 'absolute';
-        bg.style.height = '100%'; // Ensure it covers the full height
-        bg.style.width = '100%';
+        bg.style.top = '0';
+        bg.style.left = '0';
+        bg.style.width = '100vw'; // Use vw/vh to cover full viewport
+        bg.style.height = '100vh';
+        bg.style.zIndex = '-1'; // Ensure it's behind
       }
 
       html2canvas(document.body, {
@@ -2881,8 +2890,11 @@
         // Restore background position
         if (bg) {
           bg.style.position = originalPos;
-          bg.style.height = '';
+          bg.style.top = originalTop;
+          bg.style.left = originalLeft;
           bg.style.width = '';
+          bg.style.height = '';
+          bg.style.zIndex = '';
         }
 
         const link = document.createElement('a');
@@ -2896,9 +2908,12 @@
         // Restore background position on error
         const bg = document.getElementById('gradientSpotlight');
         if (bg) {
-          bg.style.position = ''; // Reset to CSS default (fixed)
-          bg.style.height = '';
+          bg.style.position = '';
+          bg.style.top = '';
+          bg.style.left = '';
           bg.style.width = '';
+          bg.style.height = '';
+          bg.style.zIndex = '';
         }
         console.error('Screenshot failed:', err);
         alert('Could not save image. ' + err.message);

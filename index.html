@@ -1688,7 +1688,8 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Best Month</div>
-          <div class="stat-huge" style="font-family: 'Instrument Serif', serif; font-style: italic; transform: none;">
+          <div class="stat-huge"
+            style="font-family: 'Instrument Serif', serif; font-style: italic; transform: none; line-height: 1.1; padding: 0.1em 0;">
             October</div>
           <div class="context">You were <em>on fire</em>.</div>
           <div class="mini-cards-row">
@@ -2205,6 +2206,11 @@
       stats.totalCaloriesK = Math.round(stats.totalCalories / 1000);
       stats.uniqueRoutesCount = stats.uniqueRoutes.size;
 
+      // Calculate total heartbeats (millions)
+      const totalMinutes = stats.totalTime / 60;
+      const totalBeats = (stats.avgHeartRate || 0) * totalMinutes;
+      stats.totalHeartBeatsMillions = (totalBeats / 1000000).toFixed(1);
+
       // Mini-card formatted values
       stats.formatted = {
         kmPerWeek: (stats.avgWeeklyDistance / 1000).toFixed(1),
@@ -2313,6 +2319,7 @@
       updateCounter('[data-index="1"] .counter', stats.totalDistanceKm);
       updateCounter('[data-index="2"] .counter', stats.totalTimeHours);
       updateCounter('[data-index="3"] .counter', stats.totalElevationKm);
+      updateCounter('[data-index="4"] .counter', stats.totalHeartBeatsMillions);
       updateCounter('[data-index="5"] .counter', stats.totalCaloriesK);
       updateCounter('[data-index="6"] .counter', stats.totalActivities);
       updateCounter('[data-index="7"] .counter', stats.longestStreak);
@@ -2438,11 +2445,7 @@
       const elevationTag = `You climbed <em>${everests}x the height of Everest</em>.`;
 
       // Heart Rate
-      // Estimate beats: avg HR * total minutes
-      const totalMinutes = stats.totalTime / 60;
-      const totalBeats = (stats.avgHeartRate || 140) * totalMinutes;
-      const millions = (totalBeats / 1000000).toFixed(1);
-      const hrTag = `Your heart beat <em>${millions} million times</em> during workouts.`;
+      const hrTag = `Your heart beat <em>${stats.totalHeartBeatsMillions} million times</em> during workouts.`;
 
       // Calories
       const pizzas = Math.round(stats.totalCalories / 285); // Slice of pizza

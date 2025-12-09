@@ -1366,13 +1366,13 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Total Distance</div>
-          <div class="stat-huge"><span class="counter" data-target="2847">0</span><span class="stat-unit">km</span>
+          <div class="stat-huge"><span class="counter" data-target="2847">0</span><span class="stat-unit">mi</span>
           </div>
           <div class="context">That's <em>San Francisco to New York</em> and halfway back.</div>
           <div class="mini-cards-row">
             <div class="mini-card">
               <div class="mini-card-value">54.7</div>
-              <div class="mini-card-label">km/week</div>
+              <div class="mini-card-label">mi/week</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-value">87.3</div>
@@ -1420,7 +1420,7 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Elevation Gained</div>
-          <div class="stat-huge"><span class="counter" data-target="38">0</span><span class="stat-unit">km</span></div>
+          <div class="stat-huge"><span class="counter" data-target="38">0</span><span class="stat-unit">ft</span></div>
           <div class="context">You climbed <em>4.3× the height of Everest</em>.</div>
           <div class="mini-cards-row">
             <div class="mini-card">
@@ -1705,7 +1705,7 @@
           <div class="mini-cards-row">
             <div class="mini-card">
               <div class="mini-card-value">0</div>
-              <div class="mini-card-label">km</div>
+              <div class="mini-card-label">mi</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-value">0</div>
@@ -1732,7 +1732,7 @@
       </div>
       <div class="summary-grid">
         <div class="summary-stat wide">
-          <div class="summary-num">2,847 km</div>
+          <div class="summary-num">2,847 mi</div>
           <div class="summary-lbl">Total Distance</div>
         </div>
         <div class="summary-stat">
@@ -1744,7 +1744,7 @@
           <div class="summary-lbl">Time</div>
         </div>
         <div class="summary-stat">
-          <div class="summary-num">38 km</div>
+          <div class="summary-num">38 ft</div>
           <div class="summary-lbl">Elevation</div>
         </div>
         <div class="summary-stat">
@@ -2241,9 +2241,9 @@
       stats.currentStreak = calculateCurrentStreak(stats.activeDays);
 
       // Units conversion
-      stats.totalDistanceKm = Math.round(stats.totalDistance / 1000);
+      stats.totalDistanceMiles = Math.round(stats.totalDistance * 0.000621371);
       stats.totalTimeHours = Math.round(stats.totalTime / 3600);
-      stats.totalElevationKm = (stats.totalElevation / 1000).toFixed(1);
+      stats.totalElevationFeet = Math.round(stats.totalElevation * 3.28084);
       stats.totalCaloriesK = Math.round(stats.totalCalories / 1000);
       stats.uniqueRoutesCount = stats.uniqueRoutes.size;
 
@@ -2254,13 +2254,13 @@
 
       // Mini-card formatted values
       stats.formatted = {
-        kmPerWeek: (stats.avgWeeklyDistance / 1000).toFixed(1),
-        bestWeek: (stats.bestWeekDistance / 1000).toFixed(1),
-        longestDist: (stats.longestActivityDist / 1000).toFixed(1),
+        milesPerWeek: (stats.avgWeeklyDistance * 0.000621371).toFixed(1),
+        bestWeekMiles: (stats.bestWeekDistance * 0.000621371).toFixed(1),
+        longestDistMiles: (stats.longestActivityDist * 0.000621371).toFixed(1),
         avgTimePerActivity: formatDuration(stats.totalTime / stats.totalActivities),
         longestTime: formatDuration(stats.longestActivityTime),
-        biggestClimb: Math.round(stats.maxElevationGain) + 'm',
-        hilliestRun: Math.round(stats.hilliestRun) + 'm',
+        biggestClimb: Math.round(stats.maxElevationGain * 3.28084) + 'ft',
+        hilliestRun: Math.round(stats.hilliestRun * 3.28084) + 'ft',
         dailyAvgCalories: Math.round(stats.totalCalories / 365),
         maxCalories: Math.round(stats.maxCalories).toLocaleString(),
         activePercent: Math.round((stats.activeDays.size / 365) * 100) + '%',
@@ -2415,9 +2415,9 @@
       }
 
       // Main Counters
-      updateCounter('[data-index="1"] .counter', stats.totalDistanceKm);
+      updateCounter('[data-index="1"] .counter', stats.totalDistanceMiles);
       updateCounter('[data-index="2"] .counter', stats.totalTimeHours);
-      updateCounter('[data-index="3"] .counter', stats.totalElevationKm);
+      updateCounter('[data-index="3"] .counter', stats.totalElevationFeet);
       updateCounter('[data-index="4"] .counter', stats.totalHeartBeatsMillions);
       updateCounter('[data-index="5"] .counter', stats.totalCaloriesK);
       updateCounter('[data-index="6"] .counter', stats.totalActivities);
@@ -2427,9 +2427,9 @@
       updateCounter('[data-index="11"] .counter', stats.prs);
 
       // Distance Card Mini-stats
-      updateMiniCard('.card-distance', 0, stats.formatted.kmPerWeek);
-      updateMiniCard('.card-distance', 1, stats.formatted.bestWeek);
-      updateMiniCard('.card-distance', 2, stats.formatted.longestDist);
+      updateMiniCard('.card-distance', 0, stats.formatted.milesPerWeek);
+      updateMiniCard('.card-distance', 1, stats.formatted.bestWeekMiles);
+      updateMiniCard('.card-distance', 2, stats.formatted.longestDistMiles);
 
       // Time Card Mini-stats
       updateMiniCard('.card-time', 0, stats.formatted.avgTimePerActivity);
@@ -2542,7 +2542,7 @@
       const monthEl = document.querySelector('[data-index="12"] .stat-huge');
       if (monthEl) monthEl.textContent = months[stats.bestMonth.index];
 
-      updateMiniCard('.card-month', 0, Math.round(stats.bestMonth.distance / 1000));
+      updateMiniCard('.card-month', 0, Math.round(stats.bestMonth.distance * 0.000621371));
       updateMiniCard('.card-month', 1, stats.bestMonth.activities);
       updateMiniCard('.card-month', 2, stats.monthlyPRs[stats.bestMonth.index]);
 
@@ -2578,17 +2578,17 @@
     function generateTaglines(stats) {
       // Distance
       let distanceTag = '';
-      if (stats.totalDistanceKm > 40075) distanceTag = `You circled the <em>entire Earth</em>!`;
-      else if (stats.totalDistanceKm > 4500) distanceTag = `That's <em>coast to coast</em> across the USA.`;
-      else if (stats.totalDistanceKm > 1000) distanceTag = `That's <em>London to Berlin</em> and back.`;
-      else distanceTag = `That's <em>${Math.round(stats.totalDistanceKm / 42.2)} marathons</em> back-to-back.`;
+      if (stats.totalDistanceMiles > 24901) distanceTag = `You circled the <em>entire Earth</em>!`;
+      else if (stats.totalDistanceMiles > 2800) distanceTag = `That's <em>coast to coast</em> across the USA.`;
+      else if (stats.totalDistanceMiles > 600) distanceTag = `That's <em>London to Berlin</em> and back.`;
+      else distanceTag = `That's <em>${Math.round(stats.totalDistanceMiles / 26.2)} marathons</em> back-to-back.`;
 
       // Time
       const days = (stats.totalTimeHours / 24).toFixed(1);
       const timeTag = `That's <em>${days} full days</em> of pure motion.`;
 
       // Elevation
-      const everests = (stats.totalElevationKm * 1000 / 8848).toFixed(1);
+      const everests = (stats.totalElevationFeet / 29029).toFixed(1);
       const elevationTag = `You climbed <em>${everests}x the height of Everest</em>.`;
 
       // Heart Rate
@@ -2703,10 +2703,10 @@
     function updateSummary(stats) {
       const summaryValues = document.querySelectorAll('.summary-num');
       if (summaryValues.length >= 7) {
-        summaryValues[0].textContent = `${stats.totalDistanceKm.toLocaleString()} km`;
+        summaryValues[0].textContent = `${stats.totalDistanceMiles.toLocaleString()} mi`;
         summaryValues[1].textContent = stats.totalActivities;
         summaryValues[2].textContent = `${stats.totalTimeHours} hrs`;
-        summaryValues[3].textContent = `${stats.totalElevationKm} km`;
+        summaryValues[3].textContent = `${stats.totalElevationFeet.toLocaleString()} ft`;
         summaryValues[4].textContent = `${stats.totalCaloriesK}k`;
         summaryValues[5].textContent = stats.prs;
         summaryValues[6].textContent = stats.longestStreak;

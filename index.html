@@ -2856,11 +2856,21 @@
       // Pause auto-advance
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
 
+      // Fix for html2canvas and fixed position background
+      const bg = document.getElementById('gradientSpotlight');
+      let originalPos = '';
+      if (bg) {
+        originalPos = bg.style.position;
+        bg.style.position = 'absolute';
+        bg.style.height = '100%'; // Ensure it covers the full height
+        bg.style.width = '100%';
+      }
+
       html2canvas(document.body, {
-        backgroundColor: null, // Transparent to capture CSS background
-        scale: 2, // Higher quality
+        backgroundColor: null,
+        scale: 2,
         logging: false,
-        useCORS: true, // For external images
+        useCORS: true,
         allowTaint: true,
         ignoreElements: (element) => {
           return element.id === 'saveBtn' ||
@@ -2868,6 +2878,13 @@
             element.id === 'debugLog';
         }
       }).then(canvas => {
+        // Restore background position
+        if (bg) {
+          bg.style.position = originalPos;
+          bg.style.height = '';
+          bg.style.width = '';
+        }
+
         const link = document.createElement('a');
         link.download = `strava-wrapped-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
@@ -2876,6 +2893,13 @@
         // Resume auto-advance (optional, maybe better to let user manually resume)
         // resetAutoAdvance(); 
       }).catch(err => {
+        // Restore background position on error
+        const bg = document.getElementById('gradientSpotlight');
+        if (bg) {
+          bg.style.position = ''; // Reset to CSS default (fixed)
+          bg.style.height = '';
+          bg.style.width = '';
+        }
         console.error('Screenshot failed:', err);
         alert('Could not save image. ' + err.message);
       });

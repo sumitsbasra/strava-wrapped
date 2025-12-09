@@ -1292,6 +1292,11 @@
     <div class="loading-subtext" id="loadingSubtext">Fetching activities</div>
   </div>
 
+  <!-- Debug Log -->
+  <div id="debugLog"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 200px; background: rgba(0,0,0,0.8); color: lime; font-family: monospace; font-size: 12px; overflow-y: auto; z-index: 9999; pointer-events: none; padding: 10px;">
+  </div>
+
   <div class="gradient-spotlight" id="gradientSpotlight"></div>
   <div class="wrapped-content hidden" id="wrappedContent">
     <div class="progress-container" id="progressContainer"></div>
@@ -1945,6 +1950,7 @@
 
     async function fetchAllActivities(accessToken) {
       showLoading('Fetching your activities...');
+      debugLog('fetchAllActivities started');
 
       const year = 2025;
       const startOfYear = new Date(year, 0, 1).getTime() / 1000;
@@ -1957,6 +1963,7 @@
       try {
         while (true) {
           updateLoadingText(`Fetching activities (page ${page})...`);
+          debugLog(`Fetching page ${page}...`);
 
           const response = await fetch(
             `https://www.strava.com/api/v3/athlete/activities?after=${startOfYear}&before=${endOfYear}&page=${page}&per_page=${perPage}`,
@@ -1965,11 +1972,14 @@
 
           if (!response.ok) {
             const errorText = await response.text();
+            debugLog(`Fetch failed: ${response.status} ${errorText}`);
             alert(`Debug: Fetch failed. Status: ${response.status}, Body: ${errorText}`);
             throw new Error('Failed to fetch activities');
           }
 
           const activities = await response.json();
+          debugLog(`Page ${page} received: ${activities.length} activities`);
+
           if (activities.length === 0) break;
 
           allActivities = allActivities.concat(activities);
@@ -1980,6 +1990,7 @@
         }
 
         activitiesData = allActivities;
+        debugLog(`Total activities fetched: ${activitiesData.length}`);
         updateLoadingText('Processing your year...');
 
         setTimeout(() => {
@@ -1988,17 +1999,22 @@
 
       } catch (error) {
         console.error('Fetch error:', error);
+        debugLog(`Fetch error: ${error.message}`);
         alert('Failed to fetch activities. Please try again.');
         hideLoading();
       }
     }
 
     function processAndDisplayData() {
+      debugLog('processAndDisplayData started');
       try {
+        debugLog('Calculating stats...');
         const stats = calculateStats(activitiesData);
+        debugLog('Stats calculated. Updating UI...');
         updateUIWithStats(stats);
 
         // Re-render charts with real data
+        debugLog('Rendering charts...');
         createHeatmap(stats.heatmapData);
         createTimeBars(stats.timeDistribution);
         createMonthBars(stats.monthlyDistance);
@@ -2007,13 +2023,17 @@
         hideLogin();
 
         // Initialize other UI elements
+        debugLog('Initializing UI components...');
+        document.getElementById('wrappedContent').classList.remove('hidden'); // Reveal the UI!
         createProgressBars();
         createKudosHearts();
         updateProgressBars();
         updateGradient(0);
         startAutoAdvance();
+        debugLog('UI Initialization complete');
       } catch (error) {
         console.error('Processing error:', error);
+        debugLog(`Processing error: ${error.message}\n${error.stack}`);
         alert(`Error processing data: ${error.name} - ${error.message}\n${error.stack}`);
       }
     }
@@ -2520,13 +2540,29 @@
       } else {
         const token = localStorage.getItem('strava_access_token');
         if (token) {
-          // Could refresh token and fetch new data here
-          // For now, just show the login
+          debugLog('Found existing token, fetching activities...');
+          athleteData = JSON.parse(localStorage.getItem('strava_athlete') || 'null');
+          fetchAllActivities(token);
+        } else {
+          debugLog('No token found, showing login.');
         }
       }
     }
 
+    // Debug Logger
+    function debugLog(msg) {
+      const log = document.getElementById('debugLog');
+      if (log) {
+        const line = document.createElement('div');
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }
+      console.log(msg);
+    }
+
     // Run auth check on load
+    debugLog('App started. Checking auth...');
     checkAuth();
   </script>
 </body>

@@ -2884,6 +2884,7 @@
           const link = document.createElement('a');
           link.download = `strava-wrapped-${Date.now()}.png`;
           link.href = dataUrl;
+          link.click();
         })
         .catch(function (error) {
           console.error('Screenshot failed:', error);

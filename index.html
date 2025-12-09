@@ -131,7 +131,7 @@
     .loading-screen {
       position: fixed;
       inset: 0;
-      z-index: 1999;
+      z-index: 2001;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -1985,6 +1985,7 @@
         console.error('Auth error:', error);
         alert(`Failed to connect to Strava: ${error.name} - ${error.message} at ${error.stack}`);
         hideLoading();
+        document.getElementById('loginScreen').classList.remove('hidden');
       }
     }
 
@@ -2042,6 +2043,7 @@
         debugLog(`Fetch error: ${error.message}`);
         alert('Failed to fetch activities. Please try again.');
         hideLoading();
+        document.getElementById('loginScreen').classList.remove('hidden');
       }
     }
 
@@ -2682,6 +2684,7 @@
 
     function showLoading(text) {
       document.getElementById('loadingScreen').classList.remove('hidden');
+      hideLogin(); // Explicitly hide login screen
       document.getElementById('loadingSubtext').textContent = text || 'Loading...';
 
       // Start emoji cycling

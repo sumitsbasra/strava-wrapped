@@ -2503,10 +2503,10 @@
 
       // Routes Card
       // Replacing broken placeholders with real data: Max Speed, Achievements
-      const maxSpeedKmh = (stats.maxSpeed * 3.6).toFixed(1);
-      debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedKmh} km/h), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
+      const maxSpeedMph = (stats.maxSpeed * 2.23694).toFixed(1);
+      debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedMph} mph), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
 
-      updateMiniCard('.card-routes', 0, maxSpeedKmh);
+      updateMiniCard('.card-routes', 0, maxSpeedMph);
       updateMiniCard('.card-routes', 1, stats.totalAchievements);
       updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount); // Reusing unique routes count as "Segments" count? Or just hide?
 
@@ -2514,7 +2514,7 @@
       const routesCard = document.querySelector('.card-routes');
       if (routesCard) {
         const labels = routesCard.querySelectorAll('.mini-card-label');
-        if (labels[0]) labels[0].textContent = 'max km/h';
+        if (labels[0]) labels[0].textContent = 'max mph';
         if (labels[1]) labels[1].textContent = 'achievements';
         if (labels[2]) labels[2].textContent = 'routes';
 

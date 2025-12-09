@@ -2853,43 +2853,31 @@
       const navRight = document.querySelector('.nav-area.right');
       const debug = document.getElementById('debugLog');
 
-      // Hide UI elements
-      if (btn) btn.style.display = 'none';
-      if (navLeft) navLeft.style.display = 'none';
-      if (navRight) navRight.style.display = 'none';
-      if (debug) debug.style.display = 'none';
-
       // Pause auto-advance
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
 
       html2canvas(document.body, {
-        backgroundColor: '#111', // Fallback
+        backgroundColor: null, // Transparent to capture CSS background
         scale: 2, // Higher quality
         logging: false,
-        useCORS: true // For external images
+        useCORS: true, // For external images
+        allowTaint: true,
+        ignoreElements: (element) => {
+          return element.id === 'saveBtn' ||
+            element.classList.contains('nav-area') ||
+            element.id === 'debugLog';
+        }
       }).then(canvas => {
         const link = document.createElement('a');
         link.download = `strava-wrapped-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
 
-        // Restore UI
-        if (btn) btn.style.display = 'flex';
-        if (navLeft) navLeft.style.display = 'block';
-        if (navRight) navRight.style.display = 'block';
-        if (debug) debug.style.display = 'block';
-
         // Resume auto-advance (optional, maybe better to let user manually resume)
         // resetAutoAdvance(); 
       }).catch(err => {
         console.error('Screenshot failed:', err);
         alert('Could not save image. ' + err.message);
-
-        // Restore UI on error
-        if (btn) btn.style.display = 'flex';
-        if (navLeft) navLeft.style.display = 'block';
-        if (navRight) navRight.style.display = 'block';
-        if (debug) debug.style.display = 'block';
       });
     }
 

@@ -1312,28 +1312,34 @@
 
     .save-btn {
       position: fixed;
-      top: 24px;
-      right: 24px;
+      bottom: 32px;
+      right: 32px;
       z-index: 2000;
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
       color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
       cursor: pointer;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .save-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke-width: 2px;
     }
 
     .save-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.1);
     }
 
     .save-btn:active {
@@ -1373,8 +1379,13 @@
     <div class="progress-container" id="progressContainer"></div>
     <div id="debugLog"></div>
 
-    <button id="saveBtn" class="save-btn" onclick="saveCurrentCard()">
-      📸 Save Image
+    <button id="saveBtn" class="save-btn" onclick="saveCurrentCard()" aria-label="Save Image">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+        <polyline points="16 6 12 2 8 6"></polyline>
+        <line x1="12" y1="2" x2="12" y2="15"></line>
+      </svg>
     </button>
 
     <div class="nav-area left" onclick="prevCard()"></div>

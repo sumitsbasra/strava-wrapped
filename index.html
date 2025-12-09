@@ -1553,44 +1553,11 @@
 
     </div>
 
-    <!-- 8: Pace & PRs -->
-    <div class="story-card card-pace" data-index="8">
-      <div class="noise"></div>
-      <div class="grid-overlay"></div>
-      <div class="hero-section">
-        <div class="stat-content">
-          <div class="label">Fastest Kilometer</div>
-          <div class="stat-huge">3:42</div>
-          <div class="context">October 12 tempo run. <em>18s faster than last year</em>.</div>
-          <div class="mini-cards-row" style="max-width: 500px;">
-            <div class="mini-card">
-              <div class="mini-card-value">5:58</div>
-              <div class="mini-card-label">1 mile</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-value">19:47</div>
-              <div class="mini-card-label">5K</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-value">41:23</div>
-              <div class="mini-card-label">10K</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-value">1:38</div>
-              <div class="mini-card-label">half</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-card-value">3:28</div>
-              <div class="mini-card-label">marathon 🎉</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
+    <!-- 8: Pace & PRs (REMOVED) -->
+    <!-- Removed per user request -->
 
     <!-- 9: Kudos -->
-    <div class="story-card card-kudos" data-index="9">
+    <div class="story-card card-kudos" data-index="8">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="kudos-field" id="kudosField"></div>
@@ -1610,7 +1577,7 @@
             </div>
             <div class="mini-card">
               <div class="mini-card-value">1,247</div>
-              <div class="mini-card-label">given</div>
+              <div class="mini-card-label">comments</div>
             </div>
           </div>
         </div>
@@ -1619,7 +1586,7 @@
     </div>
 
     <!-- 10: Routes & Segments -->
-    <div class="story-card card-routes" data-index="10">
+    <div class="story-card card-routes" data-index="9">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="hero-section">
@@ -1650,7 +1617,7 @@
     </div>
 
     <!-- 11: Morning -->
-    <div class="story-card card-morning" data-index="11">
+    <div class="story-card card-morning" data-index="10">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="hero-section">
@@ -1680,7 +1647,7 @@
     </div>
 
     <!-- 12: Records -->
-    <div class="story-card card-records" data-index="12">
+    <div class="story-card card-records" data-index="11">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="hero-section">
@@ -1721,14 +1688,14 @@
     </div>
 
     <!-- 13: Best Month -->
-    <div class="story-card card-month" data-index="13">
+    <div class="story-card card-month" data-index="12">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Best Month</div>
           <div class="stat-huge"
-            style="font-family: 'Instrument Serif', serif; font-style: italic; transform: none; line-height: 1.3; padding: 0.2em 0; overflow: visible;">
+            style="font-family: 'Instrument Serif', serif; font-style: italic; transform: none; line-height: 1.2; padding: 0.2em 0.5em; overflow: visible; width: 100vw; max-width: none; margin-left: -24px; margin-right: -24px;">
             October</div>
           <div class="context">You were <em>on fire</em>.</div>
           <div class="mini-cards-row">
@@ -2098,6 +2065,7 @@
         fastestKm: Infinity,
         monthlyDistance: new Array(12).fill(0),
         monthlyActivities: new Array(12).fill(0),
+        monthlyPRs: new Array(12).fill(0),
         weeklyDistance: new Array(53).fill(0),
         startTimes: new Array(24).fill(0),
         longestStreak: 0,
@@ -2188,6 +2156,7 @@
         const month = date.getMonth();
         stats.monthlyDistance[month] += dist;
         stats.monthlyActivities[month]++;
+        stats.monthlyPRs[month] += activity.pr_count || 0;
 
         // Weekly stats
         const weekNum = getWeekNumber(date);
@@ -2196,7 +2165,19 @@
         }
 
         // Time distribution (5am - 8pm)
-        const hour = new Date(activity.start_date_local || activity.start_date).getHours();
+        // Use string parsing to get the local hour as recorded by the device/user
+        // start_date_local is "YYYY-MM-DDTHH:MM:SSZ" or similar.
+        let hour = 0;
+        if (activity.start_date_local) {
+          // Extract HH from THH:MM:SS
+          const parts = activity.start_date_local.split('T');
+          if (parts.length > 1) {
+            hour = parseInt(parts[1].substring(0, 2), 10);
+          }
+        } else {
+          hour = new Date(activity.start_date).getHours();
+        }
+
         stats.startTimes[hour]++;
 
         // Map 5am (5) to index 0, 8pm (20) to index 15
@@ -2416,7 +2397,7 @@
       updateCounter('[data-index="7"] .counter', stats.longestStreak);
       updateCounter('[data-index="9"] .counter', stats.kudos);
       updateCounter('[data-index="10"] .counter', stats.uniqueRoutesCount);
-      updateCounter('[data-index="12"] .counter', stats.prs);
+      updateCounter('[data-index="11"] .counter', stats.prs);
 
       // Distance Card Mini-stats
       updateMiniCard('.card-distance', 0, stats.formatted.kmPerWeek);
@@ -2464,26 +2445,10 @@
       updateMiniCard('.card-streak', 0, stats.currentStreak);
       updateMiniCard('.card-streak', 1, stats.formatted.activePercent);
 
-      // Pace Card - REMOVE Fastest Km
-      // User asked to remove "fastest kilometer card". 
-      // We'll replace the main stat with "Fastest 5k" if available, or just "Best Pace"
-      const paceEl = document.querySelector('[data-index="8"] .stat-huge');
-      if (paceEl) {
-        if (stats.fastestPaces['5k'].time !== Infinity) {
-          paceEl.innerHTML = formatDuration(stats.fastestPaces['5k'].time);
-          const label = document.querySelector('[data-index="8"] .label');
-          if (label) label.textContent = 'Fastest 5k';
-        } else {
-          paceEl.innerHTML = '--:--';
-        }
-      }
+      // Pace Card - REMOVED
 
-      // Update PR mini-cards
-      updateMiniCard('.card-pace', 0, formatDuration(stats.fastestPaces['1mi'].time));
-      updateMiniCard('.card-pace', 1, formatDuration(stats.fastestPaces['5k'].time));
-      updateMiniCard('.card-pace', 2, formatDuration(stats.fastestPaces['10k'].time));
-      updateMiniCard('.card-pace', 3, formatDuration(stats.fastestPaces['half'].time));
-      updateMiniCard('.card-pace', 4, formatDuration(stats.fastestPaces['marathon'].time));
+      // Update PR mini-cards (Moved to Records card)
+      // ...
 
       // Kudos Card
       updateMiniCard('.card-kudos', 0, (stats.kudos / stats.totalActivities).toFixed(1));
@@ -2501,7 +2466,7 @@
       // (Placeholders for now as we don't have segment data)
 
       // Morning Card
-      const timeEl = document.querySelector('[data-index="11"] .stat-huge');
+      const timeEl = document.querySelector('[data-index="10"] .stat-huge');
       if (timeEl) timeEl.innerHTML = `${stats.commonStartTime}<span class="stat-unit">${stats.commonStartTimeUnit}</span>`;
       updateMiniCard('.card-morning', 0, stats.formatted.morningPercent);
       updateMiniCard('.card-morning', 1, stats.formatted.earliestStart);
@@ -2516,12 +2481,12 @@
 
       // Best Month Card
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      const monthEl = document.querySelector('[data-index="13"] .stat-huge');
+      const monthEl = document.querySelector('[data-index="12"] .stat-huge');
       if (monthEl) monthEl.textContent = months[stats.bestMonth.index];
 
       updateMiniCard('.card-month', 0, Math.round(stats.bestMonth.distance / 1000));
       updateMiniCard('.card-month', 1, stats.bestMonth.activities);
-      updateMiniCard('.card-month', 2, '--'); // PRs per month not tracked yet
+      updateMiniCard('.card-month', 2, stats.monthlyPRs[stats.bestMonth.index]);
 
       // Summary Grid
       updateSummary(stats);

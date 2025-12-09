@@ -356,10 +356,10 @@
 
     .mini-cards-row {
       display: flex;
-      gap: 10px;
-      margin-top: 28px;
-      flex-wrap: wrap;
       justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
       max-width: 400px;
     }
 
@@ -2480,6 +2480,8 @@
       // Routes Card
       // Replacing broken placeholders with real data: Max Speed, Achievements
       const maxSpeedKmh = (stats.maxSpeed * 3.6).toFixed(1);
+      debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedKmh} km/h), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
+
       updateMiniCard('.card-routes', 0, maxSpeedKmh);
       updateMiniCard('.card-routes', 1, stats.totalAchievements);
       updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount); // Reusing unique routes count as "Segments" count? Or just hide?
@@ -2507,11 +2509,21 @@
 
       // Records Card
       // (Using same PR data as Pace card for now)
+      // Value = Time, Label = Distance
       updateMiniCard('.card-records', 0, formatDuration(stats.fastestPaces['1mi'].time));
+      updateMiniCardLabel('.card-records', 0, '1 Mile');
+
       updateMiniCard('.card-records', 1, formatDuration(stats.fastestPaces['5k'].time));
+      updateMiniCardLabel('.card-records', 1, '5K');
+
       updateMiniCard('.card-records', 2, formatDuration(stats.fastestPaces['10k'].time));
+      updateMiniCardLabel('.card-records', 2, '10K');
+
       updateMiniCard('.card-records', 3, formatDuration(stats.fastestPaces['half'].time));
+      updateMiniCardLabel('.card-records', 3, 'Half');
+
       updateMiniCard('.card-records', 4, formatDuration(stats.fastestPaces['marathon'].time));
+      updateMiniCardLabel('.card-records', 4, 'Full');
 
       // Best Month Card
       const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -2630,6 +2642,16 @@
       }
     }
 
+    function updateMiniCardLabel(cardSelector, index, label) {
+      const card = document.querySelector(cardSelector);
+      if (!card) return;
+      const minis = card.querySelectorAll('.mini-card');
+      if (minis[index]) {
+        const lblEl = minis[index].querySelector('.mini-card-label');
+        if (lblEl) lblEl.textContent = label;
+      }
+    }
+
     function updateCounter(selector, value) {
       const el = document.querySelector(selector);
       if (el) el.dataset.target = value;
@@ -2647,20 +2669,20 @@
         'Yoga': { emoji: '🧘', name: 'Yoga' }
       };
 
-      const grid = document.querySelector('.activity-grid');
-      if (!grid) return;
+      const container = document.querySelector('.card-activities .mini-cards-row');
+      if (!container) return;
 
       const sortedTypes = Object.entries(types)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 4);
 
-      grid.innerHTML = sortedTypes.map(([type, count]) => {
+      container.innerHTML = sortedTypes.map(([type, count]) => {
         const info = typeMap[type] || { emoji: '👟', name: type };
         return `
-          <div class="activity-item">
-            <div class="activity-emoji">${info.emoji}</div>
-            <div class="activity-count">${count}</div>
-            <div class="activity-name">${info.name}</div>
+          <div class="mini-card">
+            <div class="mini-card-icon">${info.emoji}</div>
+            <div class="mini-card-value">${count}</div>
+            <div class="mini-card-label">${info.name}</div>
           </div>
         `;
       }).join('');

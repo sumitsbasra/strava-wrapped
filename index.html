@@ -2004,9 +2004,10 @@
         });
 
         const data = await response.json();
+        debugLog(`Token exchange response: ${response.status}`);
 
         if (!response.ok) {
-          if (response.status === 403) {
+          if (response.status === 403 || (data.error && JSON.stringify(data.error).toLowerCase().includes('limit'))) {
             hideLoading();
             document.getElementById('errorScreen').classList.remove('hidden');
             return;
@@ -2025,7 +2026,12 @@
         }
       } catch (error) {
         console.error('Auth error:', error);
-        alert(`Failed to connect to Strava: ${error.name} - ${error.message} at ${error.stack}`);
+        if (error.message && (error.message.includes('403') || error.message.toLowerCase().includes('limit'))) {
+          hideLoading();
+          document.getElementById('errorScreen').classList.remove('hidden');
+          return;
+        }
+        alert(`Failed to connect to Strava: ${error.name} - ${error.message}`);
         hideLoading();
         document.getElementById('loginScreen').classList.remove('hidden');
       }
@@ -2061,6 +2067,12 @@
               localStorage.removeItem('strava_athlete');
               alert('Your session has expired. Please log in again.');
               window.location.reload();
+              return;
+            }
+            if (response.status === 403) {
+              debugLog('API Limit reached (403). Showing error screen.');
+              hideLoading();
+              document.getElementById('errorScreen').classList.remove('hidden');
               return;
             }
             const errorText = await response.text();

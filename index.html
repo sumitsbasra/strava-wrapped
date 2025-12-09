@@ -1994,23 +1994,28 @@
     }
 
     function processAndDisplayData() {
-      const stats = calculateStats(activitiesData);
-      updateUIWithStats(stats);
+      try {
+        const stats = calculateStats(activitiesData);
+        updateUIWithStats(stats);
 
-      // Re-render charts with real data
-      createHeatmap(stats.heatmapData);
-      createTimeBars(stats.timeDistribution);
-      createMonthBars(stats.monthlyDistance);
+        // Re-render charts with real data
+        createHeatmap(stats.heatmapData);
+        createTimeBars(stats.timeDistribution);
+        createMonthBars(stats.monthlyDistance);
 
-      hideLoading();
-      hideLogin();
+        hideLoading();
+        hideLogin();
 
-      // Initialize other UI elements
-      createProgressBars();
-      createKudosHearts();
-      updateProgressBars();
-      updateGradient(0);
-      startAutoAdvance();
+        // Initialize other UI elements
+        createProgressBars();
+        createKudosHearts();
+        updateProgressBars();
+        updateGradient(0);
+        startAutoAdvance();
+      } catch (error) {
+        console.error('Processing error:', error);
+        alert(`Error processing data: ${error.name} - ${error.message}\n${error.stack}`);
+      }
     }
 
     function calculateStats(activities) {

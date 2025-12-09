@@ -2087,6 +2087,10 @@
         const cals = activity.calories || 0;
         const date = new Date(activity.start_date);
 
+        if (stats.totalActivities < 5) {
+          debugLog(`Activity ${activity.id}: dist=${dist}, cals=${cals}, type=${activity.type}`);
+        }
+
         stats.totalDistance += dist;
         stats.totalTime += time;
         stats.totalElevation += elev;

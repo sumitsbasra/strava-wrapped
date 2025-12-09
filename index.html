@@ -550,6 +550,8 @@
       transform: skewX(-6deg);
       display: inline-block;
       letter-spacing: 0.04em;
+      white-space: nowrap;
+      /* Prevent wrapping */
     }
 
     .context {
@@ -2864,32 +2866,35 @@
 
       const node = document.body;
 
-      htmlToImage.toPng(node, {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        style: {
-          transform: 'scale(1)', // Prevent any scaling issues
-          transformOrigin: 'top left',
-          width: window.innerWidth + 'px',
-          height: window.innerHeight + 'px'
-        },
-        filter: (node) => {
-          // Exclude UI elements
-          if (node.id === 'saveBtn' || node.id === 'debugLog') return false;
-          if (node.classList && node.classList.contains('nav-area')) return false;
-          return true;
-        }
-      })
-        .then(function (dataUrl) {
-          const link = document.createElement('a');
-          link.download = `strava-wrapped-${Date.now()}.png`;
-          link.href = dataUrl;
-          link.click();
+      // Ensure fonts are loaded
+      document.fonts.ready.then(() => {
+        htmlToImage.toPng(node, {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          cacheBust: true, // Force reload images
+          style: {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+            width: window.innerWidth + 'px',
+            height: window.innerHeight + 'px'
+          },
+          filter: (node) => {
+            if (node.id === 'saveBtn' || node.id === 'debugLog') return false;
+            if (node.classList && node.classList.contains('nav-area')) return false;
+            return true;
+          }
         })
-        .catch(function (error) {
-          console.error('Screenshot failed:', error);
-          alert('Could not save image. ' + (error.message || error));
-        });
+          .then(function (dataUrl) {
+            const link = document.createElement('a');
+            link.download = `strava-wrapped-${Date.now()}.png`;
+            link.href = dataUrl;
+            link.click();
+          })
+          .catch(function (error) {
+            console.error('Screenshot failed:', error);
+            alert('Could not save image. ' + (error.message || error));
+          });
+      });
     }
 
     function hideLoading() {

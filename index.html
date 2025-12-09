@@ -1629,6 +1629,10 @@
               <div class="mini-card-value">--:--</div>
               <div class="mini-card-label">earliest</div>
             </div>
+            <div class="mini-card">
+              <div class="mini-card-value">--</div>
+              <div class="mini-card-label">latest</div>
+            </div>
           </div>
           <div class="time-distribution" style="margin-top: 24px;">
             <div class="time-bars" id="timeBars"></div>
@@ -2073,6 +2077,8 @@
         maxElevationGain: 0,
         hilliestRun: 0,
         maxCalories: 0,
+        maxSpeed: 0,
+        totalAchievements: 0,
         activeDays: new Set(),
         heatmapData: Array(53).fill().map(() => Array(7).fill(0)),
         timeDistribution: new Array(16).fill(0), // 5am to 8pm
@@ -2111,6 +2117,7 @@
         stats.kudos += activity.kudos_count || 0;
         stats.totalComments += activity.comment_count || 0;
         stats.prs += activity.pr_count || 0;
+        stats.totalAchievements += activity.achievement_count || 0;
 
         // Max/Best tracking
         stats.maxKudos = Math.max(stats.maxKudos, activity.kudos_count || 0);
@@ -2119,6 +2126,7 @@
         stats.maxElevationGain = Math.max(stats.maxElevationGain, elev); // Single biggest climb (approx as total gain)
         stats.hilliestRun = Math.max(stats.hilliestRun, elev);
         stats.maxCalories = Math.max(stats.maxCalories, cals);
+        stats.maxSpeed = Math.max(stats.maxSpeed, activity.max_speed || 0);
 
         // Activity types
         const type = activity.type || 'Other';
@@ -2245,7 +2253,8 @@
         maxCalories: Math.round(stats.maxCalories).toLocaleString(),
         activePercent: Math.round((stats.activeDays.size / 365) * 100) + '%',
         morningPercent: Math.round((stats.startTimes.slice(5, 9).reduce((a, b) => a + b, 0) / stats.totalActivities) * 100) + '%',
-        earliestStart: getEarliestStart(stats.startTimes)
+        earliestStart: getEarliestStart(stats.startTimes),
+        latestStart: getLatestStart(stats.startTimes)
       };
 
 
@@ -2301,6 +2310,18 @@
         const ampm = first >= 12 ? 'pm' : 'am';
         const h = first % 12 || 12;
         return `${h}${ampm}`;
+      }
+      return '--';
+    }
+
+    function getLatestStart(startTimes) {
+      // Find the latest hour with activity
+      for (let i = 23; i >= 0; i--) {
+        if (startTimes[i] > 0) {
+          const ampm = i >= 12 ? 'pm' : 'am';
+          const h = i % 12 || 12;
+          return `${h}${ampm}`;
+        }
       }
       return '--';
     }
@@ -2457,13 +2478,32 @@
       }
 
       // Routes Card
-      // (Placeholders for now as we don't have segment data)
+      // Replacing broken placeholders with real data: Max Speed, Achievements
+      const maxSpeedKmh = (stats.maxSpeed * 3.6).toFixed(1);
+      updateMiniCard('.card-routes', 0, maxSpeedKmh);
+      updateMiniCard('.card-routes', 1, stats.totalAchievements);
+      updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount); // Reusing unique routes count as "Segments" count? Or just hide?
+
+      // Update labels
+      const routesCard = document.querySelector('.card-routes');
+      if (routesCard) {
+        const labels = routesCard.querySelectorAll('.mini-card-label');
+        if (labels[0]) labels[0].textContent = 'max km/h';
+        if (labels[1]) labels[1].textContent = 'achievements';
+        if (labels[2]) labels[2].textContent = 'routes';
+
+        const icons = routesCard.querySelectorAll('.mini-card-icon');
+        if (icons[0]) icons[0].textContent = '⚡';
+        if (icons[1]) icons[1].textContent = '🏅';
+        if (icons[2]) icons[2].textContent = '🗺️';
+      }
 
       // Morning Card
       const timeEl = document.querySelector('[data-index="10"] .stat-huge');
       if (timeEl) timeEl.innerHTML = `${stats.commonStartTime}<span class="stat-unit">${stats.commonStartTimeUnit}</span>`;
       updateMiniCard('.card-morning', 0, stats.formatted.morningPercent);
       updateMiniCard('.card-morning', 1, stats.formatted.earliestStart);
+      updateMiniCard('.card-morning', 2, stats.formatted.latestStart);
 
       // Records Card
       // (Using same PR data as Pace card for now)
@@ -2659,6 +2699,7 @@
 
     function createTimeBars(data) {
       const container = document.getElementById('timeBars');
+      if (!container) return;
       container.innerHTML = '';
 
       // Data is array of 16 hours (5am - 8pm)
@@ -2700,6 +2741,7 @@
         container.appendChild(col);
       });
     }
+
 
     let emojiInterval;
     let textInterval;

@@ -2034,7 +2034,11 @@
             { headers: { 'Authorization': `Bearer ${accessToken}` } }
           );
 
-          if (!response.ok) throw new Error('Failed to fetch activities');
+          if (!response.ok) {
+            const errorText = await response.text();
+            alert(`Debug: Fetch failed. Status: ${response.status}, Body: ${errorText}`);
+            throw new Error('Failed to fetch activities');
+          }
 
           const activities = await response.json();
           if (activities.length === 0) break;

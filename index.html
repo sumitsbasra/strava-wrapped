@@ -1241,7 +1241,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code: code,
-            redirect_uri: REDIRECT_URI
+            redirect_uri: REDIRECT_URI,
+            client_id: STRAVA_CLIENT_ID
           })
         });
         

@@ -3,7 +3,7 @@
 
 export async function onRequestPost(context) {
   const { request, env } = context;
-  
+
   // CORS headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -12,8 +12,9 @@ export async function onRequestPost(context) {
   };
 
   try {
-    const { code, redirect_uri } = await request.json();
-    
+    const requestBody = await request.json();
+    const { code, redirect_uri } = requestBody;
+
     if (!code) {
       return new Response(JSON.stringify({ error: 'Missing code' }), {
         status: 400,
@@ -26,10 +27,11 @@ export async function onRequestPost(context) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        client_id: env.STRAVA_CLIENT_ID,
+        client_id: requestBody.client_id || env.STRAVA_CLIENT_ID,
         client_secret: env.STRAVA_CLIENT_SECRET,
         code: code,
-        grant_type: 'authorization_code'
+        grant_type: 'authorization_code',
+        redirect_uri: redirect_uri
       })
     });
 

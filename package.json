@@ -1,0 +1,15 @@
+{
+  "name": "strava-wrapped",
+  "version": "1.0.0",
+  "description": "Strava Wrapped 2025",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "deploy": "wrangler pages deploy ."
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1986,7 +1986,6 @@
       try {
         // Use our secure serverless function to exchange the code
         // This keeps the client_secret safe on the server
-        alert(`Debug: Starting fetch to /api/token with redirect_uri: ${REDIRECT_URI}`);
         const response = await fetch('/api/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1997,7 +1996,6 @@
           })
         });
 
-        alert(`Debug: Fetch complete, status: ${response.status}`);
         const data = await response.json();
 
         if (data.access_token) {

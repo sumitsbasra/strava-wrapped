@@ -1352,7 +1352,7 @@
           <div class="intro-label">Your Year in Motion</div>
           <div class="intro-year">2025</div>
           <div class="intro-wrapped">Wrapped</div>
-          <div class="intro-name">Sumit's Athletic Journey</div>
+          <div class="intro-name">Your Athletic Journey</div>
         </div>
         <div class="tap-hint">Tap to begin</div>
       </div>
@@ -2411,7 +2411,10 @@
     function updateUIWithStats(stats) {
       if (athleteData) {
         const nameEl = document.querySelector('.intro-name');
-        if (nameEl) nameEl.textContent = `${athleteData.firstname}'s Athletic Journey`;
+        if (nameEl) {
+          const name = athleteData.firstname || 'Your';
+          nameEl.textContent = `${name}'s Athletic Journey`;
+        }
       }
 
       // Main Counters

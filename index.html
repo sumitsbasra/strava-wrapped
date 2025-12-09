@@ -7,7 +7,6 @@
   <title>Year In Motion</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
   <link
     href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
@@ -539,11 +538,6 @@
       line-height: 0.85;
       letter-spacing: -0.02em;
       transform: skewX(-6deg);
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      flex-wrap: nowrap;
-      white-space: nowrap;
     }
 
     .stat-unit {
@@ -553,12 +547,8 @@
       opacity: 0.7;
       margin-left: 8px;
       transform: skewX(-6deg);
-      display: inline-flex;
-      align-items: baseline;
-      justify-content: center;
+      display: inline-block;
       letter-spacing: 0.04em;
-      white-space: nowrap;
-      /* Prevent wrapping */
     }
 
     .context {
@@ -1318,42 +1308,6 @@
         width: 18px;
       }
     }
-
-    .save-btn {
-      position: fixed;
-      bottom: 32px;
-      right: 32px;
-      z-index: 2000;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-
-    .save-btn svg {
-      width: 24px;
-      height: 24px;
-      stroke-width: 2px;
-    }
-
-    .save-btn:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: scale(1.1);
-    }
-
-    .save-btn:active {
-      transform: scale(0.95);
-    }
   </style>
 </head>
 
@@ -1386,17 +1340,6 @@
   <div class="gradient-spotlight" id="gradientSpotlight"></div>
   <div class="wrapped-content hidden" id="wrappedContent">
     <div class="progress-container" id="progressContainer"></div>
-    <div id="debugLog"></div>
-
-    <button id="saveBtn" class="save-btn" onclick="saveCurrentCard()" aria-label="Save Image">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-        <polyline points="16 6 12 2 8 6"></polyline>
-        <line x1="12" y1="2" x2="12" y2="15"></line>
-      </svg>
-    </button>
-
     <div class="nav-area left" onclick="prevCard()"></div>
     <div class="nav-area right" onclick="nextCard()"></div>
 
@@ -2865,53 +2808,6 @@
 
     function updateLoadingText(text) {
       // No-op as requested by user
-    }
-
-    function saveCurrentCard() {
-      // Pause auto-advance
-      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
-
-      const node = document.body;
-
-      // Ensure fonts are loaded
-      document.fonts.ready.then(async () => {
-        // Fetch font CSS manually to ensure it's embedded
-        let fontCss = '';
-        try {
-          const response = await fetch('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
-          fontCss = await response.text();
-        } catch (e) {
-          console.warn('Failed to fetch font CSS:', e);
-        }
-
-        htmlToImage.toPng(node, {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          pixelRatio: 2,
-          fontEmbedCSS: fontCss, // Explicitly embed fonts
-          style: {
-            transform: 'scale(1)',
-            transformOrigin: 'top left',
-            width: window.innerWidth + 'px',
-            height: window.innerHeight + 'px'
-          },
-          filter: (node) => {
-            if (node.id === 'saveBtn' || node.id === 'debugLog') return false;
-            if (node.classList && node.classList.contains('nav-area')) return false;
-            return true;
-          }
-        })
-          .then(function (dataUrl) {
-            const link = document.createElement('a');
-            link.download = `strava-wrapped-${Date.now()}.png`;
-            link.href = dataUrl;
-            link.click();
-          })
-          .catch(function (error) {
-            console.error('Screenshot failed:', error);
-            alert('Could not save image. ' + (error.message || error));
-          });
-      });
     }
 
     function hideLoading() {

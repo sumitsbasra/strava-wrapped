@@ -7,7 +7,7 @@
   <title>Year In Motion</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
   <link
     href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
@@ -2848,47 +2848,29 @@
     }
 
     function saveCurrentCard() {
-      const btn = document.getElementById('saveBtn');
-      const navLeft = document.querySelector('.nav-area.left');
-      const navRight = document.querySelector('.nav-area.right');
-      const debug = document.getElementById('debugLog');
-
       // Pause auto-advance
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
 
-      html2canvas(document.body, {
-        backgroundColor: null,
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        ignoreElements: (element) => {
-          return element.id === 'saveBtn' ||
-            element.classList.contains('nav-area') ||
-            element.id === 'debugLog';
-        },
-        onclone: (clonedDoc) => {
-          const bg = clonedDoc.getElementById('gradientSpotlight');
-          if (bg) {
-            bg.style.position = 'absolute';
-            bg.style.top = '0';
-            bg.style.left = '0';
-            bg.style.width = window.innerWidth + 'px';
-            bg.style.height = window.innerHeight + 'px';
-            // Try to force visibility if mix-blend-mode is failing, 
-            // but let's trust it works if positioned correctly.
-            // bg.style.mixBlendMode = 'normal'; 
-          }
+      const node = document.body;
+
+      domtoimage.toPng(node, {
+        filter: (node) => {
+          // Exclude UI elements
+          if (node.id === 'saveBtn' || node.id === 'debugLog') return false;
+          if (node.classList && node.classList.contains('nav-area')) return false;
+          return true;
         }
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `strava-wrapped-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }).catch(err => {
-        console.error('Screenshot failed:', err);
-        alert('Could not save image. ' + err.message);
-      });
+      })
+        .then(function (dataUrl) {
+          const link = document.createElement('a');
+          link.download = `strava-wrapped-${Date.now()}.png`;
+          link.href = dataUrl;
+          link.click();
+        })
+        .catch(function (error) {
+          console.error('Screenshot failed:', error);
+          alert('Could not save image. ' + error.message);
+        });
     }
 
     function hideLoading() {

@@ -2383,6 +2383,114 @@
 
       // Summary Grid
       updateSummary(stats);
+
+      // Update Taglines
+      updateTaglines(stats);
+    }
+
+    function updateTaglines(stats) {
+      const taglines = generateTaglines(stats);
+
+      setTagline('.card-distance .context', taglines.distance);
+      setTagline('.card-time .context', taglines.time);
+      setTagline('.card-elevation .context', taglines.elevation);
+      setTagline('.card-heartrate .context', taglines.heartrate);
+      setTagline('.card-calories .context', taglines.calories);
+      setTagline('.card-activities .context', taglines.activities);
+      setTagline('.card-streak .context', taglines.streak);
+      setTagline('.card-pace .context', taglines.pace);
+      setTagline('.card-kudos .context', taglines.kudos);
+      setTagline('.card-routes .context', taglines.routes);
+      setTagline('.card-morning .context', taglines.morning);
+      setTagline('.card-records .context', taglines.records);
+      setTagline('.card-month .context', taglines.month);
+    }
+
+    function setTagline(selector, html) {
+      const el = document.querySelector(selector);
+      if (el && html) el.innerHTML = html;
+    }
+
+    function generateTaglines(stats) {
+      // Distance
+      let distanceTag = '';
+      if (stats.totalDistanceKm > 40075) distanceTag = `You circled the <em>entire Earth</em>!`;
+      else if (stats.totalDistanceKm > 4500) distanceTag = `That's <em>coast to coast</em> across the USA.`;
+      else if (stats.totalDistanceKm > 1000) distanceTag = `That's <em>London to Berlin</em> and back.`;
+      else distanceTag = `That's <em>${Math.round(stats.totalDistanceKm / 42.2)} marathons</em> back-to-back.`;
+
+      // Time
+      const days = (stats.totalTimeHours / 24).toFixed(1);
+      const timeTag = `That's <em>${days} full days</em> of pure motion.`;
+
+      // Elevation
+      const everests = (stats.totalElevationKm * 1000 / 8848).toFixed(1);
+      const elevationTag = `You climbed <em>${everests}x the height of Everest</em>.`;
+
+      // Heart Rate
+      // Estimate beats: avg HR * total minutes
+      const totalMinutes = stats.totalTime / 60;
+      const totalBeats = (stats.avgHeartRate || 140) * totalMinutes;
+      const millions = (totalBeats / 1000000).toFixed(1);
+      const hrTag = `Your heart beat <em>${millions} million times</em> during workouts.`;
+
+      // Calories
+      const pizzas = Math.round(stats.totalCalories / 285); // Slice of pizza
+      const calsTag = `That's <em>${pizzas.toLocaleString()} slices of pizza</em> worth of energy.`;
+
+      // Activities
+      const avgPerWeek = (stats.totalActivities / 52).toFixed(1);
+      const restDays = 365 - stats.activeDays.size;
+      const activitiesTag = `That's <em>${avgPerWeek} activities per week</em>. ${restDays} rest days.`;
+
+      // Streak
+      let streakTag = `Consistency is key. Keep it up!`;
+      if (stats.longestStreak > 3) {
+        streakTag = `Your longest streak was <em>${stats.longestStreak} days</em>. Relentless.`;
+      }
+
+      // Pace
+      let paceTag = `Keep pushing your limits.`;
+      if (stats.fastestPaces['5k'] && stats.fastestPaces['5k'].date) {
+        const d = new Date(stats.fastestPaces['5k'].date);
+        const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+        paceTag = `Fastest 5K on <em>${dateStr}</em>.`;
+      }
+
+      // Kudos
+      const kudosTag = stats.kudos > 100 ? `You're kind of a <em>big deal</em>.` : `Your community showed up for you.`;
+
+      // Routes
+      const routesTag = `You explored <em>${stats.uniqueRoutesCount} unique paths</em> this year.`;
+
+      // Morning
+      const hour = stats.commonStartHour || 0;
+      let morningTag = `You love a lunch run.`;
+      if (hour < 5) morningTag = `You're a <em>night owl</em> (or very early bird).`;
+      else if (hour < 10) morningTag = `You're an <em>early bird</em>.`;
+      else if (hour >= 17) morningTag = `You own the <em>night</em>.`;
+
+      // Records
+      const recordsTag = `A year of <em>${stats.prs} personal records</em>.`;
+
+      // Month
+      const monthTag = `You were <em>on fire</em> in ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][stats.bestMonth.index]}.`;
+
+      return {
+        distance: distanceTag,
+        time: timeTag,
+        elevation: elevationTag,
+        heartrate: hrTag,
+        calories: calsTag,
+        activities: activitiesTag,
+        streak: streakTag,
+        pace: paceTag,
+        kudos: kudosTag,
+        routes: routesTag,
+        morning: morningTag,
+        records: recordsTag,
+        month: monthTag
+      };
     }
 
     function updateMiniCard(cardSelector, index, value) {

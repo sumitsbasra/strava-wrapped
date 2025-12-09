@@ -2059,912 +2059,913 @@
 
     async function processAndDisplayData() {
       debugLog('processAndDisplayData started');
-      // Process activities
-      debugLog(`Processing ${activitiesData.length} activities...`);
+      try {
+        // Process activities
+        debugLog(`Processing ${activitiesData.length} activities...`);
 
-      // Fetch weather data (in background or blocking? Blocking for now to ensure stats are ready)
-      // We'll limit to top 50 significant activities to avoid rate limits/long wait times for this demo
-      // or implement a smart batcher. For now, let's try to fetch for all but with a concurrency limit.
-      // Actually, for a "Wrapped" experience, waiting 10-20s might be too much. 
-      // Let's fetch weather ONLY for the "significant" ones (longest, fastest, etc) AND a random sample for stats?
-      // No, user wants "Total rainy days". We need all.
-      // Let's try to fetch in batches of 10 with a delay.
+        // Fetch weather data (in background or blocking? Blocking for now to ensure stats are ready)
+        // We'll limit to top 50 significant activities to avoid rate limits/long wait times for this demo
+        // or implement a smart batcher. For now, let's try to fetch for all but with a concurrency limit.
+        // Actually, for a "Wrapped" experience, waiting 10-20s might be too much. 
+        // Let's fetch weather ONLY for the "significant" ones (longest, fastest, etc) AND a random sample for stats?
+        // No, user wants "Total rainy days". We need all.
+        // Let's try to fetch in batches of 10 with a delay.
 
-      updateLoadingText('Checking the forecast...');
-      const activitiesWithWeather = await fetchWeatherForActivities(activitiesData);
+        updateLoadingText('Checking the forecast...');
+        const activitiesWithWeather = await fetchWeatherForActivities(activitiesData);
 
-      const stats = calculateStats(activitiesWithWeather);
-      debugLog('Stats calculated');
+        const stats = calculateStats(activitiesWithWeather);
+        debugLog('Stats calculated');
 
-      updateUIWithStats(stats);
-      debugLog('UI updated');
-      // Re-render charts with real data
-      debugLog('Rendering charts...');
-      createHeatmap(stats.heatmapData);
-      createTimeBars(stats.timeDistribution);
-      createMonthBars(stats.monthlyDistance);
+        updateUIWithStats(stats);
+        debugLog('UI updated');
+        // Re-render charts with real data
+        debugLog('Rendering charts...');
+        createHeatmap(stats.heatmapData);
+        createTimeBars(stats.timeDistribution);
+        createMonthBars(stats.monthlyDistance);
 
-      hideLoading();
-      hideLogin();
+        hideLoading();
+        hideLogin();
 
-      // Initialize other UI elements
-      debugLog('Initializing UI components...');
-      document.getElementById('wrappedContent').classList.remove('hidden'); // Reveal the UI!
-      createProgressBars();
-      createKudosHearts();
-      updateProgressBars();
-      updateGradient(0);
-      startAutoAdvance();
-      debugLog('UI Initialization complete');
-    } catch (error) {
-      console.error('Processing error:', error);
-      debugLog(`Processing error: ${error.message}\n${error.stack}`);
-      alert(`Error processing data: ${error.name} - ${error.message}\n${error.stack}`);
-    }
-
-
-    function calculateStats(activities) {
-      const stats = {
-        totalDistance: 0,
-        totalTime: 0,
-        totalElevation: 0,
-        totalCalories: 0,
-        totalActivities: activities.length,
-        activityTypes: {},
-        kudos: 0,
-        maxKudos: 0,
-        totalComments: 0,
-        maxHeartRate: 0,
-        avgHeartRate: 0,
-        heartRateCount: 0,
-        prs: 0,
-        fastestKm: Infinity,
-        monthlyDistance: new Array(12).fill(0),
-        monthlyActivities: new Array(12).fill(0),
-        monthlyPRs: new Array(12).fill(0),
-        weeklyDistance: new Array(53).fill(0),
-        startTimes: new Array(24).fill(0),
-        longestStreak: 0,
-        uniqueRoutes: new Set(),
-        bestMonth: { index: 0, distance: 0 },
-
-        // New stats
-        longestActivityDist: 0,
-        longestActivityTime: 0,
-        maxElevationGain: 0,
-        hilliestRun: 0,
-        maxCalories: 0,
-        maxSpeed: 0,
-        totalAchievements: 0,
-        activeDays: new Set(),
-        heatmapData: Array(53).fill().map(() => Array(7).fill(0)),
-        timeDistribution: new Array(16).fill(0), // 5am to 8pm
-
-        fastestPaces: {
-          '1mi': { time: Infinity, date: null },
-          '5k': { time: Infinity, date: null },
-          '10k': { time: Infinity, date: null },
-          'half': { time: Infinity, date: null },
-          'marathon': { time: Infinity, date: null }
-        },
-
-        // Weather Stats
-        rainyDays: 0,
-        snowyDays: 0,
-        sunnyDays: 0,
-        hottestRun: { temp: -100, id: null, date: null },
-        coldestRun: { temp: 100, id: null, date: null },
-        toughWeatherCount: 0,
-
-        // Formatted strings for UI
-        formatted: {}
-      };
-
-      activities.forEach((activity, index) => {
-        // Basic stats
-        const dist = activity.distance || 0;
-        const time = activity.moving_time || 0;
-        const elev = activity.total_elevation_gain || 0;
-        // Strava summary activities might not have calories, but rides have kilojoules
-        let cals = activity.calories || 0;
-        if (!cals && activity.kilojoules) {
-          cals = activity.kilojoules; // Rough approximation for cycling
-        }
-
-        const date = new Date(activity.start_date);
-
-        if (index < 5) {
-          debugLog(`Activity ${activity.id} (${activity.type}): dist=${dist}, cals=${cals} (raw: ${activity.calories}, kj: ${activity.kilojoules})`);
-          if (index === 0) debugLog(`Keys: ${Object.keys(activity).join(', ')}`);
-        }
-
-        stats.totalDistance += dist;
-        stats.totalTime += time;
-        stats.totalElevation += elev;
-        stats.totalCalories += cals;
-        stats.kudos += activity.kudos_count || 0;
-        stats.totalComments += activity.comment_count || 0;
-        stats.prs += activity.pr_count || 0;
-        stats.totalAchievements += activity.achievement_count || 0;
-
-        // Max/Best tracking
-        stats.maxKudos = Math.max(stats.maxKudos, activity.kudos_count || 0);
-        stats.longestActivityDist = Math.max(stats.longestActivityDist, dist);
-        stats.longestActivityTime = Math.max(stats.longestActivityTime, time);
-        stats.maxElevationGain = Math.max(stats.maxElevationGain, elev); // Single biggest climb (approx as total gain)
-        stats.hilliestRun = Math.max(stats.hilliestRun, elev);
-        stats.maxCalories = Math.max(stats.maxCalories, cals);
-
-        // Filter out GPS errors (ignore speeds > 35 m/s or ~126 km/h)
-        const speed = activity.max_speed || 0;
-        if (speed < 35) {
-          stats.maxSpeed = Math.max(stats.maxSpeed, speed);
-        } else {
-          debugLog(`Ignored unrealistic max speed: ${speed} m/s (${(speed * 3.6).toFixed(1)} km/h) in activity ${activity.id}`);
-        }
-
-        // Activity types
-        const type = activity.type || 'Other';
-        stats.activityTypes[type] = (stats.activityTypes[type] || 0) + 1;
-
-        // Heart rate
-        if (activity.max_heartrate) {
-          stats.maxHeartRate = Math.max(stats.maxHeartRate, activity.max_heartrate);
-        }
-        if (activity.average_heartrate) {
-          stats.avgHeartRate += activity.average_heartrate;
-          stats.heartRateCount++;
-        }
-
-        // Fastest pace & PRs (Simplified logic)
-        if (type === 'Run' && dist > 0) {
-          const pace = time / (dist / 1000); // sec/km
-          stats.fastestKm = Math.min(stats.fastestKm, pace);
-
-          // Rough PR tracking based on distance
-          const distKm = dist / 1000;
-          if (distKm >= 1.6 && time < stats.fastestPaces['1mi'].time) stats.fastestPaces['1mi'] = { time, date };
-          if (distKm >= 5 && time < stats.fastestPaces['5k'].time) stats.fastestPaces['5k'] = { time, date };
-          if (distKm >= 10 && time < stats.fastestPaces['10k'].time) stats.fastestPaces['10k'] = { time, date };
-          if (distKm >= 21.09 && time < stats.fastestPaces['half'].time) stats.fastestPaces['half'] = { time, date };
-          if (distKm >= 42.19 && time < stats.fastestPaces['marathon'].time) stats.fastestPaces['marathon'] = { time, date };
-        }
-
-        // Monthly stats
-        const month = date.getMonth();
-        stats.monthlyDistance[month] += dist;
-        stats.monthlyActivities[month]++;
-        stats.monthlyPRs[month] += activity.pr_count || 0;
-
-        // Weekly stats
-        const weekNum = getWeekNumber(date);
-        if (weekNum >= 0 && weekNum < 53) {
-          stats.weeklyDistance[weekNum] += dist;
-        }
-
-        // Time distribution (5am - 8pm)
-        // Use string parsing to get the local hour as recorded by the device/user
-        // start_date_local is "YYYY-MM-DDTHH:MM:SSZ" or similar.
-        let hour = 0;
-        if (activity.start_date_local) {
-          // Extract HH from THH:MM:SS
-          const parts = activity.start_date_local.split('T');
-          if (parts.length > 1) {
-            hour = parseInt(parts[1].substring(0, 2), 10);
-          }
-        } else {
-          hour = new Date(activity.start_date).getHours();
-        }
-
-        stats.startTimes[hour]++;
-
-        // Map 5am (5) to index 0, 8pm (20) to index 15
-        if (hour >= 5 && hour <= 20) {
-          stats.timeDistribution[hour - 5]++;
-        }
-
-        // Heatmap & Streak
-        const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
-        // Adjust to 0=Mon, 6=Sun for heatmap usually, but let's stick to JS day
-        if (weekNum >= 0 && weekNum < 53) {
-          // Simple intensity: 1 activity = 1, >10km = 2, >20km = 3, etc.
-          let intensity = 1;
-          if (dist > 10000) intensity = 2;
-          if (dist > 20000) intensity = 3;
-          if (dist > 40000) intensity = 4;
-          stats.heatmapData[weekNum][dayOfWeek] = Math.max(stats.heatmapData[weekNum][dayOfWeek], intensity);
-        }
-
-        stats.activeDays.add(date.toISOString().split('T')[0]);
-
-        // Unique routes
-        if (activity.map && activity.map.summary_polyline) {
-          stats.uniqueRoutes.add(activity.map.summary_polyline.substring(0, 20));
-        }
-      });
-
-      // Post-processing
-      if (stats.heartRateCount > 0) {
-        stats.avgHeartRate = Math.round(stats.avgHeartRate / stats.heartRateCount);
+        // Initialize other UI elements
+        debugLog('Initializing UI components...');
+        document.getElementById('wrappedContent').classList.remove('hidden'); // Reveal the UI!
+        createProgressBars();
+        createKudosHearts();
+        updateProgressBars();
+        updateGradient(0);
+        startAutoAdvance();
+        debugLog('UI Initialization complete');
+      } catch (error) {
+        console.error('Processing error:', error);
+        debugLog(`Processing error: ${error.message}\n${error.stack}`);
+        alert(`Error processing data: ${error.name} - ${error.message}\n${error.stack}`);
       }
 
-      // Best month
-      stats.monthlyDistance.forEach((dist, i) => {
-        if (dist > stats.bestMonth.distance) {
-          stats.bestMonth = { index: i, distance: dist, activities: stats.monthlyActivities[i] };
+
+      function calculateStats(activities) {
+        const stats = {
+          totalDistance: 0,
+          totalTime: 0,
+          totalElevation: 0,
+          totalCalories: 0,
+          totalActivities: activities.length,
+          activityTypes: {},
+          kudos: 0,
+          maxKudos: 0,
+          totalComments: 0,
+          maxHeartRate: 0,
+          avgHeartRate: 0,
+          heartRateCount: 0,
+          prs: 0,
+          fastestKm: Infinity,
+          monthlyDistance: new Array(12).fill(0),
+          monthlyActivities: new Array(12).fill(0),
+          monthlyPRs: new Array(12).fill(0),
+          weeklyDistance: new Array(53).fill(0),
+          startTimes: new Array(24).fill(0),
+          longestStreak: 0,
+          uniqueRoutes: new Set(),
+          bestMonth: { index: 0, distance: 0 },
+
+          // New stats
+          longestActivityDist: 0,
+          longestActivityTime: 0,
+          maxElevationGain: 0,
+          hilliestRun: 0,
+          maxCalories: 0,
+          maxSpeed: 0,
+          totalAchievements: 0,
+          activeDays: new Set(),
+          heatmapData: Array(53).fill().map(() => Array(7).fill(0)),
+          timeDistribution: new Array(16).fill(0), // 5am to 8pm
+
+          fastestPaces: {
+            '1mi': { time: Infinity, date: null },
+            '5k': { time: Infinity, date: null },
+            '10k': { time: Infinity, date: null },
+            'half': { time: Infinity, date: null },
+            'marathon': { time: Infinity, date: null }
+          },
+
+          // Weather Stats
+          rainyDays: 0,
+          snowyDays: 0,
+          sunnyDays: 0,
+          hottestRun: { temp: -100, id: null, date: null },
+          coldestRun: { temp: 100, id: null, date: null },
+          toughWeatherCount: 0,
+
+          // Formatted strings for UI
+          formatted: {}
+        };
+
+        activities.forEach((activity, index) => {
+          // Basic stats
+          const dist = activity.distance || 0;
+          const time = activity.moving_time || 0;
+          const elev = activity.total_elevation_gain || 0;
+          // Strava summary activities might not have calories, but rides have kilojoules
+          let cals = activity.calories || 0;
+          if (!cals && activity.kilojoules) {
+            cals = activity.kilojoules; // Rough approximation for cycling
+          }
+
+          const date = new Date(activity.start_date);
+
+          if (index < 5) {
+            debugLog(`Activity ${activity.id} (${activity.type}): dist=${dist}, cals=${cals} (raw: ${activity.calories}, kj: ${activity.kilojoules})`);
+            if (index === 0) debugLog(`Keys: ${Object.keys(activity).join(', ')}`);
+          }
+
+          stats.totalDistance += dist;
+          stats.totalTime += time;
+          stats.totalElevation += elev;
+          stats.totalCalories += cals;
+          stats.kudos += activity.kudos_count || 0;
+          stats.totalComments += activity.comment_count || 0;
+          stats.prs += activity.pr_count || 0;
+          stats.totalAchievements += activity.achievement_count || 0;
+
+          // Max/Best tracking
+          stats.maxKudos = Math.max(stats.maxKudos, activity.kudos_count || 0);
+          stats.longestActivityDist = Math.max(stats.longestActivityDist, dist);
+          stats.longestActivityTime = Math.max(stats.longestActivityTime, time);
+          stats.maxElevationGain = Math.max(stats.maxElevationGain, elev); // Single biggest climb (approx as total gain)
+          stats.hilliestRun = Math.max(stats.hilliestRun, elev);
+          stats.maxCalories = Math.max(stats.maxCalories, cals);
+
+          // Filter out GPS errors (ignore speeds > 35 m/s or ~126 km/h)
+          const speed = activity.max_speed || 0;
+          if (speed < 35) {
+            stats.maxSpeed = Math.max(stats.maxSpeed, speed);
+          } else {
+            debugLog(`Ignored unrealistic max speed: ${speed} m/s (${(speed * 3.6).toFixed(1)} km/h) in activity ${activity.id}`);
+          }
+
+          // Activity types
+          const type = activity.type || 'Other';
+          stats.activityTypes[type] = (stats.activityTypes[type] || 0) + 1;
+
+          // Heart rate
+          if (activity.max_heartrate) {
+            stats.maxHeartRate = Math.max(stats.maxHeartRate, activity.max_heartrate);
+          }
+          if (activity.average_heartrate) {
+            stats.avgHeartRate += activity.average_heartrate;
+            stats.heartRateCount++;
+          }
+
+          // Fastest pace & PRs (Simplified logic)
+          if (type === 'Run' && dist > 0) {
+            const pace = time / (dist / 1000); // sec/km
+            stats.fastestKm = Math.min(stats.fastestKm, pace);
+
+            // Rough PR tracking based on distance
+            const distKm = dist / 1000;
+            if (distKm >= 1.6 && time < stats.fastestPaces['1mi'].time) stats.fastestPaces['1mi'] = { time, date };
+            if (distKm >= 5 && time < stats.fastestPaces['5k'].time) stats.fastestPaces['5k'] = { time, date };
+            if (distKm >= 10 && time < stats.fastestPaces['10k'].time) stats.fastestPaces['10k'] = { time, date };
+            if (distKm >= 21.09 && time < stats.fastestPaces['half'].time) stats.fastestPaces['half'] = { time, date };
+            if (distKm >= 42.19 && time < stats.fastestPaces['marathon'].time) stats.fastestPaces['marathon'] = { time, date };
+          }
+
+          // Monthly stats
+          const month = date.getMonth();
+          stats.monthlyDistance[month] += dist;
+          stats.monthlyActivities[month]++;
+          stats.monthlyPRs[month] += activity.pr_count || 0;
+
+          // Weekly stats
+          const weekNum = getWeekNumber(date);
+          if (weekNum >= 0 && weekNum < 53) {
+            stats.weeklyDistance[weekNum] += dist;
+          }
+
+          // Time distribution (5am - 8pm)
+          // Use string parsing to get the local hour as recorded by the device/user
+          // start_date_local is "YYYY-MM-DDTHH:MM:SSZ" or similar.
+          let hour = 0;
+          if (activity.start_date_local) {
+            // Extract HH from THH:MM:SS
+            const parts = activity.start_date_local.split('T');
+            if (parts.length > 1) {
+              hour = parseInt(parts[1].substring(0, 2), 10);
+            }
+          } else {
+            hour = new Date(activity.start_date).getHours();
+          }
+
+          stats.startTimes[hour]++;
+
+          // Map 5am (5) to index 0, 8pm (20) to index 15
+          if (hour >= 5 && hour <= 20) {
+            stats.timeDistribution[hour - 5]++;
+          }
+
+          // Heatmap & Streak
+          const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
+          // Adjust to 0=Mon, 6=Sun for heatmap usually, but let's stick to JS day
+          if (weekNum >= 0 && weekNum < 53) {
+            // Simple intensity: 1 activity = 1, >10km = 2, >20km = 3, etc.
+            let intensity = 1;
+            if (dist > 10000) intensity = 2;
+            if (dist > 20000) intensity = 3;
+            if (dist > 40000) intensity = 4;
+            stats.heatmapData[weekNum][dayOfWeek] = Math.max(stats.heatmapData[weekNum][dayOfWeek], intensity);
+          }
+
+          stats.activeDays.add(date.toISOString().split('T')[0]);
+
+          // Unique routes
+          if (activity.map && activity.map.summary_polyline) {
+            stats.uniqueRoutes.add(activity.map.summary_polyline.substring(0, 20));
+          }
+        });
+
+        // Post-processing
+        if (stats.heartRateCount > 0) {
+          stats.avgHeartRate = Math.round(stats.avgHeartRate / stats.heartRateCount);
         }
-      });
 
-      // Best week
-      stats.bestWeekDistance = Math.max(...stats.weeklyDistance);
-      stats.avgWeeklyDistance = stats.totalDistance / 52;
+        // Best month
+        stats.monthlyDistance.forEach((dist, i) => {
+          if (dist > stats.bestMonth.distance) {
+            stats.bestMonth = { index: i, distance: dist, activities: stats.monthlyActivities[i] };
+          }
+        });
 
-      // Streak
-      stats.longestStreak = calculateLongestStreak(stats.activeDays);
-      stats.currentStreak = calculateCurrentStreak(stats.activeDays);
+        // Best week
+        stats.bestWeekDistance = Math.max(...stats.weeklyDistance);
+        stats.avgWeeklyDistance = stats.totalDistance / 52;
 
-      // Units conversion
-      stats.totalDistanceKm = Math.round(stats.totalDistance / 1000);
-      stats.totalTimeHours = Math.round(stats.totalTime / 3600);
-      stats.totalElevationKm = (stats.totalElevation / 1000).toFixed(1);
-      stats.totalCaloriesK = Math.round(stats.totalCalories / 1000);
-      stats.uniqueRoutesCount = stats.uniqueRoutes.size;
+        // Streak
+        stats.longestStreak = calculateLongestStreak(stats.activeDays);
+        stats.currentStreak = calculateCurrentStreak(stats.activeDays);
 
-      // Calculate total heartbeats (millions)
-      const totalMinutes = stats.totalTime / 60;
-      const totalBeats = (stats.avgHeartRate || 0) * totalMinutes;
-      stats.totalHeartBeatsMillions = (totalBeats / 1000000).toFixed(1);
+        // Units conversion
+        stats.totalDistanceKm = Math.round(stats.totalDistance / 1000);
+        stats.totalTimeHours = Math.round(stats.totalTime / 3600);
+        stats.totalElevationKm = (stats.totalElevation / 1000).toFixed(1);
+        stats.totalCaloriesK = Math.round(stats.totalCalories / 1000);
+        stats.uniqueRoutesCount = stats.uniqueRoutes.size;
 
-      // Mini-card formatted values
-      stats.formatted = {
-        kmPerWeek: (stats.avgWeeklyDistance / 1000).toFixed(1),
-        bestWeek: (stats.bestWeekDistance / 1000).toFixed(1),
-        longestDist: (stats.longestActivityDist / 1000).toFixed(1),
-        avgTimePerActivity: formatDuration(stats.totalTime / stats.totalActivities),
-        longestTime: formatDuration(stats.longestActivityTime),
-        biggestClimb: Math.round(stats.maxElevationGain) + 'm',
-        hilliestRun: Math.round(stats.hilliestRun) + 'm',
-        dailyAvgCalories: Math.round(stats.totalCalories / 365),
-        maxCalories: Math.round(stats.maxCalories).toLocaleString(),
-        activePercent: Math.round((stats.activeDays.size / 365) * 100) + '%',
-        morningPercent: Math.round((stats.startTimes.slice(5, 9).reduce((a, b) => a + b, 0) / stats.totalActivities) * 100) + '%',
-        earliestStart: getEarliestStart(stats.startTimes),
-        latestStart: getLatestStart(stats.startTimes)
-      };
+        // Calculate total heartbeats (millions)
+        const totalMinutes = stats.totalTime / 60;
+        const totalBeats = (stats.avgHeartRate || 0) * totalMinutes;
+        stats.totalHeartBeatsMillions = (totalBeats / 1000000).toFixed(1);
+
+        // Mini-card formatted values
+        stats.formatted = {
+          kmPerWeek: (stats.avgWeeklyDistance / 1000).toFixed(1),
+          bestWeek: (stats.bestWeekDistance / 1000).toFixed(1),
+          longestDist: (stats.longestActivityDist / 1000).toFixed(1),
+          avgTimePerActivity: formatDuration(stats.totalTime / stats.totalActivities),
+          longestTime: formatDuration(stats.longestActivityTime),
+          biggestClimb: Math.round(stats.maxElevationGain) + 'm',
+          hilliestRun: Math.round(stats.hilliestRun) + 'm',
+          dailyAvgCalories: Math.round(stats.totalCalories / 365),
+          maxCalories: Math.round(stats.maxCalories).toLocaleString(),
+          activePercent: Math.round((stats.activeDays.size / 365) * 100) + '%',
+          morningPercent: Math.round((stats.startTimes.slice(5, 9).reduce((a, b) => a + b, 0) / stats.totalActivities) * 100) + '%',
+          earliestStart: getEarliestStart(stats.startTimes),
+          latestStart: getLatestStart(stats.startTimes)
+        };
 
 
 
-      // Common start time
-      let maxStartTime = 0;
-      let commonHour = 6;
-      stats.startTimes.forEach((count, hour) => {
-        if (count > maxStartTime) {
-          maxStartTime = count;
-          commonHour = hour;
+        // Common start time
+        let maxStartTime = 0;
+        let commonHour = 6;
+        stats.startTimes.forEach((count, hour) => {
+          if (count > maxStartTime) {
+            maxStartTime = count;
+            commonHour = hour;
+          }
+        });
+        const ampm = commonHour >= 12 ? 'PM' : 'AM';
+        const displayHour = commonHour % 12 || 12;
+        stats.commonStartTime = `${displayHour}:00`;
+        stats.commonStartTimeUnit = ampm;
+
+        return stats;
+      }
+
+      function formatDuration(seconds) {
+        if (!seconds) return '0:00';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        return h > 0 ? `${h}:${m.toString().padStart(2, '0')}` : `${m}m`;
+      }
+
+      function formatPace(secondsPerKm) {
+        if (secondsPerKm === Infinity || !secondsPerKm) return '--:--';
+        const mins = Math.floor(secondsPerKm / 60);
+        const secs = Math.round(secondsPerKm % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      function getEarliestStart(startTimes) {
+        // Skip 0-3am (midnight to 3am) unless that's the ONLY time they run.
+        // Many manual entries default to midnight.
+        let first = -1;
+        for (let i = 0; i < 24; i++) {
+          if (startTimes[i] > 0) {
+            if (first === -1) first = i;
+            // If we find something reasonable (>= 4am), return it.
+            if (i >= 4) {
+              const ampm = i >= 12 ? 'pm' : 'am';
+              const h = i % 12 || 12;
+              return `${h}${ampm}`;
+            }
+          }
         }
-      });
-      const ampm = commonHour >= 12 ? 'PM' : 'AM';
-      const displayHour = commonHour % 12 || 12;
-      stats.commonStartTime = `${displayHour}:00`;
-      stats.commonStartTimeUnit = ampm;
+        // If we only found crazy early times, return the first one
+        if (first !== -1) {
+          const ampm = first >= 12 ? 'pm' : 'am';
+          const h = first % 12 || 12;
+          return `${h}${ampm}`;
+        }
+        return '--';
+      }
 
-      return stats;
-    }
-
-    function formatDuration(seconds) {
-      if (!seconds) return '0:00';
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      return h > 0 ? `${h}:${m.toString().padStart(2, '0')}` : `${m}m`;
-    }
-
-    function formatPace(secondsPerKm) {
-      if (secondsPerKm === Infinity || !secondsPerKm) return '--:--';
-      const mins = Math.floor(secondsPerKm / 60);
-      const secs = Math.round(secondsPerKm % 60);
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    function getEarliestStart(startTimes) {
-      // Skip 0-3am (midnight to 3am) unless that's the ONLY time they run.
-      // Many manual entries default to midnight.
-      let first = -1;
-      for (let i = 0; i < 24; i++) {
-        if (startTimes[i] > 0) {
-          if (first === -1) first = i;
-          // If we find something reasonable (>= 4am), return it.
-          if (i >= 4) {
+      function getLatestStart(startTimes) {
+        // Find the latest hour with activity
+        for (let i = 23; i >= 0; i--) {
+          if (startTimes[i] > 0) {
             const ampm = i >= 12 ? 'pm' : 'am';
             const h = i % 12 || 12;
             return `${h}${ampm}`;
           }
         }
+        return '--';
       }
-      // If we only found crazy early times, return the first one
-      if (first !== -1) {
-        const ampm = first >= 12 ? 'pm' : 'am';
-        const h = first % 12 || 12;
-        return `${h}${ampm}`;
-      }
-      return '--';
-    }
 
-    function getLatestStart(startTimes) {
-      // Find the latest hour with activity
-      for (let i = 23; i >= 0; i--) {
-        if (startTimes[i] > 0) {
-          const ampm = i >= 12 ? 'pm' : 'am';
-          const h = i % 12 || 12;
-          return `${h}${ampm}`;
+      function getWeekNumber(date) {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      }
+
+      function calculateLongestStreak(datesSet) {
+        const dates = Array.from(datesSet).sort();
+        if (dates.length === 0) return 0;
+
+        let maxStreak = 1;
+        let currentStreak = 1;
+
+        for (let i = 1; i < dates.length; i++) {
+          const prev = new Date(dates[i - 1]);
+          const curr = new Date(dates[i]);
+          const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+
+          if (diff === 1) {
+            currentStreak++;
+          } else {
+            maxStreak = Math.max(maxStreak, currentStreak);
+            currentStreak = 1;
+          }
+        }
+        return Math.max(maxStreak, currentStreak);
+      }
+
+      function calculateCurrentStreak(datesSet) {
+        if (datesSet.size === 0) return 0;
+
+        const dates = Array.from(datesSet).sort();
+        const lastDateStr = dates[dates.length - 1];
+        const lastDate = new Date(lastDateStr);
+
+        // Check against today in user's local time (approx)
+        const now = new Date();
+        // Reset times to compare dates only
+        now.setHours(0, 0, 0, 0);
+        const last = new Date(lastDate);
+        last.setHours(0, 0, 0, 0);
+
+        const diffTime = Math.abs(now - last);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Allow 0 (today) or 1 (yesterday)
+        if (diffDays > 1) return 0;
+
+        let currentStreak = 1;
+        for (let i = dates.length - 1; i > 0; i--) {
+          const curr = new Date(dates[i]);
+          const prev = new Date(dates[i - 1]);
+
+          // Normalize to midnight UTC to avoid DST issues
+          curr.setUTCHours(0, 0, 0, 0);
+          prev.setUTCHours(0, 0, 0, 0);
+
+          const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+
+          if (Math.round(diff) === 1) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        }
+        return currentStreak;
+      }
+
+      function updateUIWithStats(stats) {
+        if (athleteData) {
+          const nameEl = document.querySelector('.intro-name');
+          if (nameEl) nameEl.textContent = `${athleteData.firstname}'s Athletic Journey`;
+        }
+
+        // Main Counters
+        updateCounter('[data-index="1"] .counter', stats.totalDistanceKm);
+        updateCounter('[data-index="2"] .counter', stats.totalTimeHours);
+        updateCounter('[data-index="3"] .counter', stats.totalElevationKm);
+        updateCounter('[data-index="4"] .counter', stats.totalHeartBeatsMillions);
+        updateCounter('[data-index="5"] .counter', stats.totalCaloriesK);
+        updateCounter('[data-index="6"] .counter', stats.totalActivities);
+        updateCounter('[data-index="7"] .counter', stats.longestStreak);
+        updateCounter('[data-index="8"] .counter', stats.kudos);
+        updateCounter('[data-index="9"] .counter', stats.uniqueRoutesCount);
+        updateCounter('[data-index="11"] .counter', stats.prs);
+
+        // Distance Card Mini-stats
+        updateMiniCard('.card-distance', 0, stats.formatted.kmPerWeek);
+        updateMiniCard('.card-distance', 1, stats.formatted.bestWeek);
+        updateMiniCard('.card-distance', 2, stats.formatted.longestDist);
+
+        // Time Card Mini-stats
+        updateMiniCard('.card-time', 0, stats.formatted.avgTimePerActivity);
+        updateMiniCard('.card-time', 1, stats.formatted.longestTime);
+
+        // Elevation Card Mini-stats
+        updateMiniCard('.card-elevation', 0, stats.formatted.biggestClimb);
+        updateMiniCard('.card-elevation', 1, stats.formatted.hilliestRun);
+
+        // Heart Rate Card
+        updateMiniCard('.card-heartrate', 0, stats.maxHeartRate);
+        updateMiniCard('.card-heartrate', 1, stats.avgHeartRate);
+        // Resting HR is not available in summary activities. 
+        // Replacing with "Zones" placeholder or removing. Let's change label to "Activities with HR"
+        updateMiniCard('.card-heartrate', 2, stats.heartRateCount);
+        const hrCard = document.querySelector('.card-heartrate');
+        if (hrCard) {
+          const labels = hrCard.querySelectorAll('.mini-card-label');
+          if (labels[2]) labels[2].textContent = 'Recorded';
+        }
+
+        // Calories Card
+        // Calculate daily average based on active days, not 365, to be more representative of "workout days"
+        // Or just total / 365 if we want true daily average. 
+        // User said "wrong" (161). 58k total. 
+        // Let's change it to "Avg per Activity" which is more accurate/verifiable.
+        updateMiniCard('.card-calories', 0, Math.round(stats.totalCalories / stats.totalActivities));
+        // Update label
+        const calCard = document.querySelector('.card-calories');
+        if (calCard) {
+          const labels = calCard.querySelectorAll('.mini-card-label');
+          if (labels[0]) labels[0].textContent = 'Avg / Activity';
+        }
+        updateMiniCard('.card-calories', 1, stats.formatted.maxCalories);
+
+        // Activities Card (Breakdown)
+        updateActivityBreakdown(stats.activityTypes);
+
+        // Streak Card
+        updateMiniCard('.card-streak', 0, stats.currentStreak);
+        updateMiniCard('.card-streak', 1, stats.formatted.activePercent);
+
+        // Pace Card - REMOVED
+
+        // Update PR mini-cards (Moved to Records card)
+        // ...
+
+        // Kudos Card
+        updateMiniCard('.card-kudos', 0, (stats.kudos / stats.totalActivities).toFixed(1));
+        updateMiniCard('.card-kudos', 1, stats.maxKudos);
+        updateMiniCard('.card-kudos', 2, stats.totalComments);
+
+        // Update label for the 3rd card since we changed it from Given to Comments
+        const kudosCard = document.querySelector('.card-kudos');
+        if (kudosCard) {
+          const labels = kudosCard.querySelectorAll('.mini-card-label');
+          if (labels[2]) labels[2].textContent = 'comments';
+        }
+
+        // Routes Card
+        // Replacing broken placeholders with real data: Max Speed, Achievements
+        const maxSpeedKmh = (stats.maxSpeed * 3.6).toFixed(1);
+        debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedKmh} km/h), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
+
+        updateMiniCard('.card-routes', 0, maxSpeedKmh);
+        updateMiniCard('.card-routes', 1, stats.totalAchievements);
+        updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount); // Reusing unique routes count as "Segments" count? Or just hide?
+
+        // Update labels
+        const routesCard = document.querySelector('.card-routes');
+        if (routesCard) {
+          const labels = routesCard.querySelectorAll('.mini-card-label');
+          if (labels[0]) labels[0].textContent = 'max km/h';
+          if (labels[1]) labels[1].textContent = 'achievements';
+          if (labels[2]) labels[2].textContent = 'routes';
+
+          const icons = routesCard.querySelectorAll('.mini-card-icon');
+          if (icons[0]) icons[0].textContent = '⚡';
+          if (icons[1]) icons[1].textContent = '🏅';
+          if (icons[2]) icons[2].textContent = '🗺️';
+        }
+
+        // Morning Card
+        const timeEl = document.querySelector('[data-index="10"] .stat-huge');
+        if (timeEl) timeEl.innerHTML = `${stats.commonStartTime}<span class="stat-unit">${stats.commonStartTimeUnit}</span>`;
+        updateMiniCard('.card-morning', 0, stats.formatted.morningPercent);
+        updateMiniCard('.card-morning', 1, stats.formatted.earliestStart);
+        updateMiniCard('.card-morning', 2, stats.formatted.latestStart);
+
+        // Weather Card
+        updateCounter('[data-index="11"] .counter', stats.toughWeatherCount);
+        updateMiniCard('.card-weather', 0, stats.rainyDays);
+        updateMiniCard('.card-weather', 1, stats.coldestRun.temp !== 100 ? `${Math.round(stats.coldestRun.temp)}°C` : '--');
+        updateMiniCard('.card-weather', 2, stats.hottestRun.temp !== -100 ? `${Math.round(stats.hottestRun.temp)}°C` : '--');
+        updateMiniCard('.card-weather', 3, stats.totalActivities > 0 ? `${Math.round((stats.sunnyDays / stats.totalActivities) * 100)}%` : '0%');
+
+        // Records Card
+        // (Using same PR data as Pace card for now)
+        // Value = Time, Label = Distance
+        updateMiniCard('.card-records', 0, formatDuration(stats.fastestPaces['1mi'].time));
+        updateMiniCardLabel('.card-records', 0, '1 Mile');
+
+        updateMiniCard('.card-records', 1, formatDuration(stats.fastestPaces['5k'].time));
+        updateMiniCardLabel('.card-records', 1, '5K');
+
+        updateMiniCard('.card-records', 2, formatDuration(stats.fastestPaces['10k'].time));
+        updateMiniCardLabel('.card-records', 2, '10K');
+
+        updateMiniCard('.card-records', 3, formatDuration(stats.fastestPaces['half'].time));
+        updateMiniCardLabel('.card-records', 3, 'Half');
+
+        updateMiniCard('.card-records', 4, formatDuration(stats.fastestPaces['marathon'].time));
+        updateMiniCardLabel('.card-records', 4, 'Full');
+
+        // Best Month Card
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthEl = document.querySelector('[data-index="12"] .stat-huge');
+        if (monthEl) monthEl.textContent = months[stats.bestMonth.index];
+
+        updateMiniCard('.card-month', 0, Math.round(stats.bestMonth.distance / 1000));
+        updateMiniCard('.card-month', 1, stats.bestMonth.activities);
+        updateMiniCard('.card-month', 2, stats.monthlyPRs[stats.bestMonth.index]);
+
+        // Summary Grid
+        updateSummary(stats);
+
+        // Update Taglines
+        updateTaglines(stats);
+      }
+
+      function updateTaglines(stats) {
+        const taglines = generateTaglines(stats);
+
+        setTagline('.card-distance .context', taglines.distance);
+        setTagline('.card-time .context', taglines.time);
+        setTagline('.card-elevation .context', taglines.elevation);
+        setTagline('.card-heartrate .context', taglines.heartrate);
+        setTagline('.card-calories .context', taglines.calories);
+        setTagline('.card-activities .context', taglines.activities);
+        setTagline('.card-streak .context', taglines.streak);
+        setTagline('.card-kudos .context', taglines.kudos);
+        setTagline('.card-routes .context', taglines.routes);
+        setTagline('.card-morning .context', taglines.morning);
+        setTagline('.card-records .context', taglines.records);
+        setTagline('.card-month .context', taglines.month);
+      }
+
+      function setTagline(selector, html) {
+        const el = document.querySelector(selector);
+        if (el && html) el.innerHTML = html;
+      }
+
+      function generateTaglines(stats) {
+        // Distance
+        let distanceTag = '';
+        if (stats.totalDistanceKm > 40075) distanceTag = `You circled the <em>entire Earth</em>!`;
+        else if (stats.totalDistanceKm > 4500) distanceTag = `That's <em>coast to coast</em> across the USA.`;
+        else if (stats.totalDistanceKm > 1000) distanceTag = `That's <em>London to Berlin</em> and back.`;
+        else distanceTag = `That's <em>${Math.round(stats.totalDistanceKm / 42.2)} marathons</em> back-to-back.`;
+
+        // Time
+        const days = (stats.totalTimeHours / 24).toFixed(1);
+        const timeTag = `That's <em>${days} full days</em> of pure motion.`;
+
+        // Elevation
+        const everests = (stats.totalElevationKm * 1000 / 8848).toFixed(1);
+        const elevationTag = `You climbed <em>${everests}x the height of Everest</em>.`;
+
+        // Heart Rate
+        const hrTag = `Your heart beat <em>${stats.totalHeartBeatsMillions} million times</em> during workouts.`;
+
+        // Calories
+        const pizzas = Math.round(stats.totalCalories / 285); // Slice of pizza
+        const calsTag = `That's <em>${pizzas.toLocaleString()} slices of pizza</em> worth of energy.`;
+
+        // Activities
+        const avgPerWeek = (stats.totalActivities / 52).toFixed(1);
+        const restDays = 365 - stats.activeDays.size;
+        const activitiesTag = `That's <em>${avgPerWeek} activities per week</em>. ${restDays} rest days.`;
+
+        // Streak
+        let streakTag = `Consistency is key. Keep it up!`;
+        if (stats.longestStreak > 3) {
+          streakTag = `Your longest streak was <em>${stats.longestStreak} days</em>. Relentless.`;
+        }
+
+        // Kudos
+        const kudosTag = stats.kudos > 100 ? `You're kind of a <em>big deal</em>.` : `Your community showed up for you.`;
+
+        // Routes
+        const routesTag = `You explored <em>${stats.uniqueRoutesCount} unique paths</em> this year.`;
+
+        // Morning
+        const hour = stats.commonStartHour || 0;
+        let morningTag = `You love a lunch run.`;
+        if (hour < 5) morningTag = `You're a <em>night owl</em> (or very early bird).`;
+        else if (hour < 10) morningTag = `You're an <em>early bird</em>.`;
+        else if (hour >= 17) morningTag = `You own the <em>night</em>.`;
+
+        // Records
+        const recordsTag = `A year of <em>${stats.prs} personal records</em>.`;
+
+        // Month
+        const monthTag = `You were <em>on fire</em> in ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][stats.bestMonth.index]}.`;
+
+        return {
+          distance: distanceTag,
+          time: timeTag,
+          elevation: elevationTag,
+          heartrate: hrTag,
+          calories: calsTag,
+          activities: activitiesTag,
+          streak: streakTag,
+          kudos: kudosTag,
+          routes: routesTag,
+          morning: morningTag,
+          records: recordsTag,
+          month: monthTag
+        };
+      }
+
+      function updateMiniCard(cardSelector, index, value) {
+        const card = document.querySelector(cardSelector);
+        if (!card) return;
+        const minis = card.querySelectorAll('.mini-card');
+        if (minis[index]) {
+          const valEl = minis[index].querySelector('.mini-card-value');
+          if (valEl) valEl.textContent = value;
         }
       }
-      return '--';
-    }
 
-    function getWeekNumber(date) {
-      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    }
-
-    function calculateLongestStreak(datesSet) {
-      const dates = Array.from(datesSet).sort();
-      if (dates.length === 0) return 0;
-
-      let maxStreak = 1;
-      let currentStreak = 1;
-
-      for (let i = 1; i < dates.length; i++) {
-        const prev = new Date(dates[i - 1]);
-        const curr = new Date(dates[i]);
-        const diff = (curr - prev) / (1000 * 60 * 60 * 24);
-
-        if (diff === 1) {
-          currentStreak++;
-        } else {
-          maxStreak = Math.max(maxStreak, currentStreak);
-          currentStreak = 1;
+      function updateMiniCardLabel(cardSelector, index, label) {
+        const card = document.querySelector(cardSelector);
+        if (!card) return;
+        const minis = card.querySelectorAll('.mini-card');
+        if (minis[index]) {
+          const lblEl = minis[index].querySelector('.mini-card-label');
+          if (lblEl) lblEl.textContent = label;
         }
       }
-      return Math.max(maxStreak, currentStreak);
-    }
 
-    function calculateCurrentStreak(datesSet) {
-      if (datesSet.size === 0) return 0;
-
-      const dates = Array.from(datesSet).sort();
-      const lastDateStr = dates[dates.length - 1];
-      const lastDate = new Date(lastDateStr);
-
-      // Check against today in user's local time (approx)
-      const now = new Date();
-      // Reset times to compare dates only
-      now.setHours(0, 0, 0, 0);
-      const last = new Date(lastDate);
-      last.setHours(0, 0, 0, 0);
-
-      const diffTime = Math.abs(now - last);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      // Allow 0 (today) or 1 (yesterday)
-      if (diffDays > 1) return 0;
-
-      let currentStreak = 1;
-      for (let i = dates.length - 1; i > 0; i--) {
-        const curr = new Date(dates[i]);
-        const prev = new Date(dates[i - 1]);
-
-        // Normalize to midnight UTC to avoid DST issues
-        curr.setUTCHours(0, 0, 0, 0);
-        prev.setUTCHours(0, 0, 0, 0);
-
-        const diff = (curr - prev) / (1000 * 60 * 60 * 24);
-
-        if (Math.round(diff) === 1) {
-          currentStreak++;
-        } else {
-          break;
-        }
-      }
-      return currentStreak;
-    }
-
-    function updateUIWithStats(stats) {
-      if (athleteData) {
-        const nameEl = document.querySelector('.intro-name');
-        if (nameEl) nameEl.textContent = `${athleteData.firstname}'s Athletic Journey`;
+      function updateCounter(selector, value) {
+        const el = document.querySelector(selector);
+        if (el) el.dataset.target = value;
       }
 
-      // Main Counters
-      updateCounter('[data-index="1"] .counter', stats.totalDistanceKm);
-      updateCounter('[data-index="2"] .counter', stats.totalTimeHours);
-      updateCounter('[data-index="3"] .counter', stats.totalElevationKm);
-      updateCounter('[data-index="4"] .counter', stats.totalHeartBeatsMillions);
-      updateCounter('[data-index="5"] .counter', stats.totalCaloriesK);
-      updateCounter('[data-index="6"] .counter', stats.totalActivities);
-      updateCounter('[data-index="7"] .counter', stats.longestStreak);
-      updateCounter('[data-index="8"] .counter', stats.kudos);
-      updateCounter('[data-index="9"] .counter', stats.uniqueRoutesCount);
-      updateCounter('[data-index="11"] .counter', stats.prs);
+      function updateActivityBreakdown(types) {
+        const typeMap = {
+          'Run': { emoji: '🏃', name: 'Runs' },
+          'Ride': { emoji: '🚴', name: 'Rides' },
+          'Swim': { emoji: '🏊', name: 'Swims' },
+          'Walk': { emoji: '🚶', name: 'Walks' },
+          'Hike': { emoji: '🥾', name: 'Hikes' },
+          'WeightTraining': { emoji: '💪', name: 'Weights' },
+          'Workout': { emoji: '💪', name: 'Workouts' },
+          'Yoga': { emoji: '🧘', name: 'Yoga' }
+        };
 
-      // Distance Card Mini-stats
-      updateMiniCard('.card-distance', 0, stats.formatted.kmPerWeek);
-      updateMiniCard('.card-distance', 1, stats.formatted.bestWeek);
-      updateMiniCard('.card-distance', 2, stats.formatted.longestDist);
+        const container = document.querySelector('.card-activities .mini-cards-row');
+        if (!container) return;
 
-      // Time Card Mini-stats
-      updateMiniCard('.card-time', 0, stats.formatted.avgTimePerActivity);
-      updateMiniCard('.card-time', 1, stats.formatted.longestTime);
+        const sortedTypes = Object.entries(types)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4);
 
-      // Elevation Card Mini-stats
-      updateMiniCard('.card-elevation', 0, stats.formatted.biggestClimb);
-      updateMiniCard('.card-elevation', 1, stats.formatted.hilliestRun);
-
-      // Heart Rate Card
-      updateMiniCard('.card-heartrate', 0, stats.maxHeartRate);
-      updateMiniCard('.card-heartrate', 1, stats.avgHeartRate);
-      // Resting HR is not available in summary activities. 
-      // Replacing with "Zones" placeholder or removing. Let's change label to "Activities with HR"
-      updateMiniCard('.card-heartrate', 2, stats.heartRateCount);
-      const hrCard = document.querySelector('.card-heartrate');
-      if (hrCard) {
-        const labels = hrCard.querySelectorAll('.mini-card-label');
-        if (labels[2]) labels[2].textContent = 'Recorded';
-      }
-
-      // Calories Card
-      // Calculate daily average based on active days, not 365, to be more representative of "workout days"
-      // Or just total / 365 if we want true daily average. 
-      // User said "wrong" (161). 58k total. 
-      // Let's change it to "Avg per Activity" which is more accurate/verifiable.
-      updateMiniCard('.card-calories', 0, Math.round(stats.totalCalories / stats.totalActivities));
-      // Update label
-      const calCard = document.querySelector('.card-calories');
-      if (calCard) {
-        const labels = calCard.querySelectorAll('.mini-card-label');
-        if (labels[0]) labels[0].textContent = 'Avg / Activity';
-      }
-      updateMiniCard('.card-calories', 1, stats.formatted.maxCalories);
-
-      // Activities Card (Breakdown)
-      updateActivityBreakdown(stats.activityTypes);
-
-      // Streak Card
-      updateMiniCard('.card-streak', 0, stats.currentStreak);
-      updateMiniCard('.card-streak', 1, stats.formatted.activePercent);
-
-      // Pace Card - REMOVED
-
-      // Update PR mini-cards (Moved to Records card)
-      // ...
-
-      // Kudos Card
-      updateMiniCard('.card-kudos', 0, (stats.kudos / stats.totalActivities).toFixed(1));
-      updateMiniCard('.card-kudos', 1, stats.maxKudos);
-      updateMiniCard('.card-kudos', 2, stats.totalComments);
-
-      // Update label for the 3rd card since we changed it from Given to Comments
-      const kudosCard = document.querySelector('.card-kudos');
-      if (kudosCard) {
-        const labels = kudosCard.querySelectorAll('.mini-card-label');
-        if (labels[2]) labels[2].textContent = 'comments';
-      }
-
-      // Routes Card
-      // Replacing broken placeholders with real data: Max Speed, Achievements
-      const maxSpeedKmh = (stats.maxSpeed * 3.6).toFixed(1);
-      debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedKmh} km/h), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
-
-      updateMiniCard('.card-routes', 0, maxSpeedKmh);
-      updateMiniCard('.card-routes', 1, stats.totalAchievements);
-      updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount); // Reusing unique routes count as "Segments" count? Or just hide?
-
-      // Update labels
-      const routesCard = document.querySelector('.card-routes');
-      if (routesCard) {
-        const labels = routesCard.querySelectorAll('.mini-card-label');
-        if (labels[0]) labels[0].textContent = 'max km/h';
-        if (labels[1]) labels[1].textContent = 'achievements';
-        if (labels[2]) labels[2].textContent = 'routes';
-
-        const icons = routesCard.querySelectorAll('.mini-card-icon');
-        if (icons[0]) icons[0].textContent = '⚡';
-        if (icons[1]) icons[1].textContent = '🏅';
-        if (icons[2]) icons[2].textContent = '🗺️';
-      }
-
-      // Morning Card
-      const timeEl = document.querySelector('[data-index="10"] .stat-huge');
-      if (timeEl) timeEl.innerHTML = `${stats.commonStartTime}<span class="stat-unit">${stats.commonStartTimeUnit}</span>`;
-      updateMiniCard('.card-morning', 0, stats.formatted.morningPercent);
-      updateMiniCard('.card-morning', 1, stats.formatted.earliestStart);
-      updateMiniCard('.card-morning', 2, stats.formatted.latestStart);
-
-      // Weather Card
-      updateCounter('[data-index="11"] .counter', stats.toughWeatherCount);
-      updateMiniCard('.card-weather', 0, stats.rainyDays);
-      updateMiniCard('.card-weather', 1, stats.coldestRun.temp !== 100 ? `${Math.round(stats.coldestRun.temp)}°C` : '--');
-      updateMiniCard('.card-weather', 2, stats.hottestRun.temp !== -100 ? `${Math.round(stats.hottestRun.temp)}°C` : '--');
-      updateMiniCard('.card-weather', 3, stats.totalActivities > 0 ? `${Math.round((stats.sunnyDays / stats.totalActivities) * 100)}%` : '0%');
-
-      // Records Card
-      // (Using same PR data as Pace card for now)
-      // Value = Time, Label = Distance
-      updateMiniCard('.card-records', 0, formatDuration(stats.fastestPaces['1mi'].time));
-      updateMiniCardLabel('.card-records', 0, '1 Mile');
-
-      updateMiniCard('.card-records', 1, formatDuration(stats.fastestPaces['5k'].time));
-      updateMiniCardLabel('.card-records', 1, '5K');
-
-      updateMiniCard('.card-records', 2, formatDuration(stats.fastestPaces['10k'].time));
-      updateMiniCardLabel('.card-records', 2, '10K');
-
-      updateMiniCard('.card-records', 3, formatDuration(stats.fastestPaces['half'].time));
-      updateMiniCardLabel('.card-records', 3, 'Half');
-
-      updateMiniCard('.card-records', 4, formatDuration(stats.fastestPaces['marathon'].time));
-      updateMiniCardLabel('.card-records', 4, 'Full');
-
-      // Best Month Card
-      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      const monthEl = document.querySelector('[data-index="12"] .stat-huge');
-      if (monthEl) monthEl.textContent = months[stats.bestMonth.index];
-
-      updateMiniCard('.card-month', 0, Math.round(stats.bestMonth.distance / 1000));
-      updateMiniCard('.card-month', 1, stats.bestMonth.activities);
-      updateMiniCard('.card-month', 2, stats.monthlyPRs[stats.bestMonth.index]);
-
-      // Summary Grid
-      updateSummary(stats);
-
-      // Update Taglines
-      updateTaglines(stats);
-    }
-
-    function updateTaglines(stats) {
-      const taglines = generateTaglines(stats);
-
-      setTagline('.card-distance .context', taglines.distance);
-      setTagline('.card-time .context', taglines.time);
-      setTagline('.card-elevation .context', taglines.elevation);
-      setTagline('.card-heartrate .context', taglines.heartrate);
-      setTagline('.card-calories .context', taglines.calories);
-      setTagline('.card-activities .context', taglines.activities);
-      setTagline('.card-streak .context', taglines.streak);
-      setTagline('.card-kudos .context', taglines.kudos);
-      setTagline('.card-routes .context', taglines.routes);
-      setTagline('.card-morning .context', taglines.morning);
-      setTagline('.card-records .context', taglines.records);
-      setTagline('.card-month .context', taglines.month);
-    }
-
-    function setTagline(selector, html) {
-      const el = document.querySelector(selector);
-      if (el && html) el.innerHTML = html;
-    }
-
-    function generateTaglines(stats) {
-      // Distance
-      let distanceTag = '';
-      if (stats.totalDistanceKm > 40075) distanceTag = `You circled the <em>entire Earth</em>!`;
-      else if (stats.totalDistanceKm > 4500) distanceTag = `That's <em>coast to coast</em> across the USA.`;
-      else if (stats.totalDistanceKm > 1000) distanceTag = `That's <em>London to Berlin</em> and back.`;
-      else distanceTag = `That's <em>${Math.round(stats.totalDistanceKm / 42.2)} marathons</em> back-to-back.`;
-
-      // Time
-      const days = (stats.totalTimeHours / 24).toFixed(1);
-      const timeTag = `That's <em>${days} full days</em> of pure motion.`;
-
-      // Elevation
-      const everests = (stats.totalElevationKm * 1000 / 8848).toFixed(1);
-      const elevationTag = `You climbed <em>${everests}x the height of Everest</em>.`;
-
-      // Heart Rate
-      const hrTag = `Your heart beat <em>${stats.totalHeartBeatsMillions} million times</em> during workouts.`;
-
-      // Calories
-      const pizzas = Math.round(stats.totalCalories / 285); // Slice of pizza
-      const calsTag = `That's <em>${pizzas.toLocaleString()} slices of pizza</em> worth of energy.`;
-
-      // Activities
-      const avgPerWeek = (stats.totalActivities / 52).toFixed(1);
-      const restDays = 365 - stats.activeDays.size;
-      const activitiesTag = `That's <em>${avgPerWeek} activities per week</em>. ${restDays} rest days.`;
-
-      // Streak
-      let streakTag = `Consistency is key. Keep it up!`;
-      if (stats.longestStreak > 3) {
-        streakTag = `Your longest streak was <em>${stats.longestStreak} days</em>. Relentless.`;
-      }
-
-      // Kudos
-      const kudosTag = stats.kudos > 100 ? `You're kind of a <em>big deal</em>.` : `Your community showed up for you.`;
-
-      // Routes
-      const routesTag = `You explored <em>${stats.uniqueRoutesCount} unique paths</em> this year.`;
-
-      // Morning
-      const hour = stats.commonStartHour || 0;
-      let morningTag = `You love a lunch run.`;
-      if (hour < 5) morningTag = `You're a <em>night owl</em> (or very early bird).`;
-      else if (hour < 10) morningTag = `You're an <em>early bird</em>.`;
-      else if (hour >= 17) morningTag = `You own the <em>night</em>.`;
-
-      // Records
-      const recordsTag = `A year of <em>${stats.prs} personal records</em>.`;
-
-      // Month
-      const monthTag = `You were <em>on fire</em> in ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][stats.bestMonth.index]}.`;
-
-      return {
-        distance: distanceTag,
-        time: timeTag,
-        elevation: elevationTag,
-        heartrate: hrTag,
-        calories: calsTag,
-        activities: activitiesTag,
-        streak: streakTag,
-        kudos: kudosTag,
-        routes: routesTag,
-        morning: morningTag,
-        records: recordsTag,
-        month: monthTag
-      };
-    }
-
-    function updateMiniCard(cardSelector, index, value) {
-      const card = document.querySelector(cardSelector);
-      if (!card) return;
-      const minis = card.querySelectorAll('.mini-card');
-      if (minis[index]) {
-        const valEl = minis[index].querySelector('.mini-card-value');
-        if (valEl) valEl.textContent = value;
-      }
-    }
-
-    function updateMiniCardLabel(cardSelector, index, label) {
-      const card = document.querySelector(cardSelector);
-      if (!card) return;
-      const minis = card.querySelectorAll('.mini-card');
-      if (minis[index]) {
-        const lblEl = minis[index].querySelector('.mini-card-label');
-        if (lblEl) lblEl.textContent = label;
-      }
-    }
-
-    function updateCounter(selector, value) {
-      const el = document.querySelector(selector);
-      if (el) el.dataset.target = value;
-    }
-
-    function updateActivityBreakdown(types) {
-      const typeMap = {
-        'Run': { emoji: '🏃', name: 'Runs' },
-        'Ride': { emoji: '🚴', name: 'Rides' },
-        'Swim': { emoji: '🏊', name: 'Swims' },
-        'Walk': { emoji: '🚶', name: 'Walks' },
-        'Hike': { emoji: '🥾', name: 'Hikes' },
-        'WeightTraining': { emoji: '💪', name: 'Weights' },
-        'Workout': { emoji: '💪', name: 'Workouts' },
-        'Yoga': { emoji: '🧘', name: 'Yoga' }
-      };
-
-      const container = document.querySelector('.card-activities .mini-cards-row');
-      if (!container) return;
-
-      const sortedTypes = Object.entries(types)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4);
-
-      container.innerHTML = sortedTypes.map(([type, count]) => {
-        const info = typeMap[type] || { emoji: '👟', name: type };
-        return `
+        container.innerHTML = sortedTypes.map(([type, count]) => {
+          const info = typeMap[type] || { emoji: '👟', name: type };
+          return `
           <div class="mini-card">
             <div class="mini-card-icon">${info.emoji}</div>
             <div class="mini-card-value">${count}</div>
             <div class="mini-card-label">${info.name}</div>
           </div>
         `;
-      }).join('');
-    }
-
-    function updateSummary(stats) {
-      const summaryValues = document.querySelectorAll('.summary-num');
-      if (summaryValues.length >= 8) {
-        summaryValues[0].textContent = `${stats.totalDistanceKm.toLocaleString()} km`;
-        summaryValues[1].textContent = stats.totalActivities;
-        summaryValues[2].textContent = `${stats.totalTimeHours} hrs`;
-        summaryValues[3].textContent = `${stats.totalElevationKm} km`;
-        summaryValues[4].textContent = `${stats.totalCaloriesK}k`;
-        summaryValues[5].textContent = stats.prs;
-        summaryValues[6].textContent = stats.longestStreak;
-        summaryValues[7].textContent = stats.rainyDays;
+        }).join('');
       }
-    }
 
-    function createHeatmap(data) {
-      const container = document.getElementById('heatmap');
-      container.innerHTML = ''; // Clear demo data
-
-      // Data is 53 weeks x 7 days
-      for (let week = 0; week < 52; week++) {
-        for (let day = 0; day < 7; day++) {
-          const cell = document.createElement('div');
-          cell.className = 'heatmap-cell';
-
-          const intensity = data && data[week] ? data[week][day] : 0;
-          if (intensity > 0) cell.classList.add(`l${Math.min(intensity, 4)}`);
-
-          container.appendChild(cell);
+      function updateSummary(stats) {
+        const summaryValues = document.querySelectorAll('.summary-num');
+        if (summaryValues.length >= 8) {
+          summaryValues[0].textContent = `${stats.totalDistanceKm.toLocaleString()} km`;
+          summaryValues[1].textContent = stats.totalActivities;
+          summaryValues[2].textContent = `${stats.totalTimeHours} hrs`;
+          summaryValues[3].textContent = `${stats.totalElevationKm} km`;
+          summaryValues[4].textContent = `${stats.totalCaloriesK}k`;
+          summaryValues[5].textContent = stats.prs;
+          summaryValues[6].textContent = stats.longestStreak;
+          summaryValues[7].textContent = stats.rainyDays;
         }
       }
-    }
 
-    function createTimeBars(data) {
-      const container = document.getElementById('timeBars');
-      if (!container) return;
-      container.innerHTML = '';
+      function createHeatmap(data) {
+        const container = document.getElementById('heatmap');
+        container.innerHTML = ''; // Clear demo data
 
-      // Data is array of 16 hours (5am - 8pm)
-      const max = Math.max(...data, 1);
+        // Data is 53 weeks x 7 days
+        for (let week = 0; week < 52; week++) {
+          for (let day = 0; day < 7; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
 
-      data.forEach((count, i) => {
-        const bar = document.createElement('div');
-        bar.className = 'time-bar';
-        const height = Math.max((count / max) * 100, 5); // Min 5% height
-        bar.style.height = height + '%';
-        if (count === max && count > 0) bar.classList.add('peak');
-        container.appendChild(bar);
-      });
-    }
+            const intensity = data && data[week] ? data[week][day] : 0;
+            if (intensity > 0) cell.classList.add(`l${Math.min(intensity, 4)}`);
 
-    function createMonthBars(monthlyDistances) {
-      const container = document.getElementById('monthBars');
-      if (!container) return; // Might not exist in DOM yet if I missed it
-      container.innerHTML = '';
+            container.appendChild(cell);
+          }
+        }
+      }
 
-      const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
-      const max = Math.max(...monthlyDistances, 1);
+      function createTimeBars(data) {
+        const container = document.getElementById('timeBars');
+        if (!container) return;
+        container.innerHTML = '';
 
-      months.forEach((m, i) => {
-        const val = monthlyDistances[i];
-        const col = document.createElement('div');
-        col.className = 'month-col';
+        // Data is array of 16 hours (5am - 8pm)
+        const max = Math.max(...data, 1);
 
-        const bar = document.createElement('div');
-        bar.className = 'month-bar' + (val === max && val > 0 ? ' best' : '');
-        bar.style.height = Math.max((val / max) * 100, 5) + '%';
+        data.forEach((count, i) => {
+          const bar = document.createElement('div');
+          bar.className = 'time-bar';
+          const height = Math.max((count / max) * 100, 5); // Min 5% height
+          bar.style.height = height + '%';
+          if (count === max && count > 0) bar.classList.add('peak');
+          container.appendChild(bar);
+        });
+      }
 
-        const label = document.createElement('div');
-        label.className = 'month-name';
-        label.textContent = m;
+      function createMonthBars(monthlyDistances) {
+        const container = document.getElementById('monthBars');
+        if (!container) return; // Might not exist in DOM yet if I missed it
+        container.innerHTML = '';
 
-        col.appendChild(bar);
-        col.appendChild(label);
-        container.appendChild(col);
-      });
-    }
+        const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+        const max = Math.max(...monthlyDistances, 1);
+
+        months.forEach((m, i) => {
+          const val = monthlyDistances[i];
+          const col = document.createElement('div');
+          col.className = 'month-col';
+
+          const bar = document.createElement('div');
+          bar.className = 'month-bar' + (val === max && val > 0 ? ' best' : '');
+          bar.style.height = Math.max((val / max) * 100, 5) + '%';
+
+          const label = document.createElement('div');
+          label.className = 'month-name';
+          label.textContent = m;
+
+          col.appendChild(bar);
+          col.appendChild(label);
+          container.appendChild(col);
+        });
+      }
 
 
-    let emojiInterval;
-    let textInterval;
-    const emojis = ['🏃', '🚴', '🏊', '🚶', '🥾', '💪', '🧘', '⛷️'];
-    const loadingPhrases = ['Warming up...', 'Stretching...', 'Processing your year...'];
-    function showLoading() {
-      document.getElementById('loadingScreen').classList.remove('hidden');
-      hideLogin(); // Explicitly hide login screen
+      let emojiInterval;
+      let textInterval;
+      const emojis = ['🏃', '🚴', '🏊', '🚶', '🥾', '💪', '🧘', '⛷️'];
+      const loadingPhrases = ['Warming up...', 'Stretching...', 'Processing your year...'];
+      function showLoading() {
+        document.getElementById('loadingScreen').classList.remove('hidden');
+        hideLogin(); // Explicitly hide login screen
+
+        // Start emoji cycling
+        if (emojiInterval) clearInterval(emojiInterval);
+        let emojiIndex = 0;
+        const emojiEl = document.querySelector('.loading-emoji');
+        emojiInterval = setInterval(() => {
+          emojiEl.textContent = emojis[emojiIndex];
+          emojiIndex = (emojiIndex + 1) % emojis.length;
+        }, 500);
+
+        // Start text cycling
+        if (textInterval) clearInterval(textInterval);
+        let textIndex = 0;
+        const textEl = document.getElementById('loadingText');
+        textInterval = setInterval(() => {
+          // Only cycle if not showing custom text
+          if (textEl.textContent.includes('Checking')) return;
+          textEl.textContent = loadingPhrases[textIndex];
+          textIndex = (textIndex + 1) % loadingPhrases.length;
+        }, 2000);
+      }
+      async function fetchWeatherForActivities(activities) {
+        // Open-Meteo Rate Limit: ~600/min. We have to be careful.
+        // We will fetch weather for activities that have a valid start_latlng.
+        const validActivities = activities.filter(a => a.start_latlng && a.start_latlng.length === 2);
+        debugLog(`Fetching weather for ${validActivities.length} activities...`);
+
+        // We'll process in chunks to avoid overwhelming the browser/API
+        const chunkSize = 5;
+        const results = [];
+
+        // Create a map for quick lookup
+        const weatherMap = new Map();
+
+        for (let i = 0; i < validActivities.length; i += chunkSize) {
+          const chunk = validActivities.slice(i, i + chunkSize);
+          const promises = chunk.map(async (activity) => {
+            try {
+              const date = activity.start_date.split('T')[0];
+              const hour = new Date(activity.start_date).getHours();
+              const lat = activity.start_latlng[0];
+              const lng = activity.start_latlng[1];
+
+              // Open-Meteo Archive API
+              const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${date}&end_date=${date}&hourly=temperature_2m,precipitation,weathercode,snowfall&timezone=auto`;
+
+              const res = await fetch(url);
+              if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
+              const data = await res.json();
+
+              // Get data for the specific hour
+              if (data.hourly && data.hourly.time) {
+                const hourIndex = data.hourly.time.findIndex(t => new Date(t).getHours() === hour);
+                if (hourIndex !== -1) {
+                  const weather = {
+                    temp: data.hourly.temperature_2m[hourIndex],
+                    precip: data.hourly.precipitation[hourIndex],
+                    code: data.hourly.weathercode[hourIndex],
+                    snow: data.hourly.snowfall[hourIndex]
+                  };
+                  weatherMap.set(activity.id, weather);
+                }
+              }
+            } catch (e) {
+              console.error(`Failed to fetch weather for activity ${activity.id}`, e);
+            }
+          });
+
+          await Promise.all(promises);
+          // Small delay to be nice to the API
+          await new Promise(r => setTimeout(r, 100));
+
+          // Update loading text periodically
+          if (i % 20 === 0) {
+            updateLoadingText(`Checking weather for run ${i}...`);
+          }
+        }
+
+        // Attach weather to activities
+        return activities.map(a => {
+          if (weatherMap.has(a.id)) {
+            a.weather = weatherMap.get(a.id);
+          }
+          return a;
+        });
+      }
+
+      function updateLoadingText(text) {
+        const el = document.getElementById('loadingText');
+        if (el) el.textContent = text;
+      }
 
       // Start emoji cycling
       if (emojiInterval) clearInterval(emojiInterval);
-      let emojiIndex = 0;
-      const emojiEl = document.querySelector('.loading-emoji');
+      let i = 0;
+      const el = document.getElementById('emojiCycler');
       emojiInterval = setInterval(() => {
-        emojiEl.textContent = emojis[emojiIndex];
-        emojiIndex = (emojiIndex + 1) % emojis.length;
+        el.textContent = emojis[i];
+        i = (i + 1) % emojis.length;
       }, 500);
 
       // Start text cycling
       if (textInterval) clearInterval(textInterval);
-      let textIndex = 0;
+      let j = 0;
       const textEl = document.getElementById('loadingText');
+      textEl.textContent = loadingPhrases[0];
       textInterval = setInterval(() => {
-        // Only cycle if not showing custom text
-        if (textEl.textContent.includes('Checking')) return;
-        textEl.textContent = loadingPhrases[textIndex];
-        textIndex = (textIndex + 1) % loadingPhrases.length;
+        j = (j + 1) % loadingPhrases.length;
+        textEl.textContent = loadingPhrases[j];
       }, 2000);
-    }
-    async function fetchWeatherForActivities(activities) {
-      // Open-Meteo Rate Limit: ~600/min. We have to be careful.
-      // We will fetch weather for activities that have a valid start_latlng.
-      const validActivities = activities.filter(a => a.start_latlng && a.start_latlng.length === 2);
-      debugLog(`Fetching weather for ${validActivities.length} activities...`);
-
-      // We'll process in chunks to avoid overwhelming the browser/API
-      const chunkSize = 5;
-      const results = [];
-
-      // Create a map for quick lookup
-      const weatherMap = new Map();
-
-      for (let i = 0; i < validActivities.length; i += chunkSize) {
-        const chunk = validActivities.slice(i, i + chunkSize);
-        const promises = chunk.map(async (activity) => {
-          try {
-            const date = activity.start_date.split('T')[0];
-            const hour = new Date(activity.start_date).getHours();
-            const lat = activity.start_latlng[0];
-            const lng = activity.start_latlng[1];
-
-            // Open-Meteo Archive API
-            const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${date}&end_date=${date}&hourly=temperature_2m,precipitation,weathercode,snowfall&timezone=auto`;
-
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
-            const data = await res.json();
-
-            // Get data for the specific hour
-            if (data.hourly && data.hourly.time) {
-              const hourIndex = data.hourly.time.findIndex(t => new Date(t).getHours() === hour);
-              if (hourIndex !== -1) {
-                const weather = {
-                  temp: data.hourly.temperature_2m[hourIndex],
-                  precip: data.hourly.precipitation[hourIndex],
-                  code: data.hourly.weathercode[hourIndex],
-                  snow: data.hourly.snowfall[hourIndex]
-                };
-                weatherMap.set(activity.id, weather);
-              }
-            }
-          } catch (e) {
-            console.error(`Failed to fetch weather for activity ${activity.id}`, e);
-          }
-        });
-
-        await Promise.all(promises);
-        // Small delay to be nice to the API
-        await new Promise(r => setTimeout(r, 100));
-
-        // Update loading text periodically
-        if (i % 20 === 0) {
-          updateLoadingText(`Checking weather for run ${i}...`);
-        }
-      }
-
-      // Attach weather to activities
-      return activities.map(a => {
-        if (weatherMap.has(a.id)) {
-          a.weather = weatherMap.get(a.id);
-        }
-        return a;
-      });
-    }
-
-    function updateLoadingText(text) {
-      const el = document.getElementById('loadingText');
-      if (el) el.textContent = text;
-    }
-
-    // Start emoji cycling
-    if (emojiInterval) clearInterval(emojiInterval);
-    let i = 0;
-    const el = document.getElementById('emojiCycler');
-    emojiInterval = setInterval(() => {
-      el.textContent = emojis[i];
-      i = (i + 1) % emojis.length;
-    }, 500);
-
-    // Start text cycling
-    if (textInterval) clearInterval(textInterval);
-    let j = 0;
-    const textEl = document.getElementById('loadingText');
-    textEl.textContent = loadingPhrases[0];
-    textInterval = setInterval(() => {
-      j = (j + 1) % loadingPhrases.length;
-      textEl.textContent = loadingPhrases[j];
-    }, 2000);
     }
 
     function updateLoadingText(text) {

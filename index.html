@@ -2856,25 +2856,6 @@
       // Pause auto-advance
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
 
-      // Fix for html2canvas and fixed position background
-      const bg = document.getElementById('gradientSpotlight');
-      let originalPos = '';
-      let originalTop = '';
-      let originalLeft = '';
-
-      if (bg) {
-        originalPos = bg.style.position;
-        originalTop = bg.style.top;
-        originalLeft = bg.style.left;
-
-        bg.style.position = 'absolute';
-        bg.style.top = '0';
-        bg.style.left = '0';
-        bg.style.width = '100vw'; // Use vw/vh to cover full viewport
-        bg.style.height = '100vh';
-        bg.style.zIndex = '-1'; // Ensure it's behind
-      }
-
       html2canvas(document.body, {
         backgroundColor: null,
         scale: 2,
@@ -2885,36 +2866,26 @@
           return element.id === 'saveBtn' ||
             element.classList.contains('nav-area') ||
             element.id === 'debugLog';
+        },
+        onclone: (clonedDoc) => {
+          const bg = clonedDoc.getElementById('gradientSpotlight');
+          if (bg) {
+            bg.style.position = 'absolute';
+            bg.style.top = '0';
+            bg.style.left = '0';
+            bg.style.width = window.innerWidth + 'px';
+            bg.style.height = window.innerHeight + 'px';
+            // Try to force visibility if mix-blend-mode is failing, 
+            // but let's trust it works if positioned correctly.
+            // bg.style.mixBlendMode = 'normal'; 
+          }
         }
       }).then(canvas => {
-        // Restore background position
-        if (bg) {
-          bg.style.position = originalPos;
-          bg.style.top = originalTop;
-          bg.style.left = originalLeft;
-          bg.style.width = '';
-          bg.style.height = '';
-          bg.style.zIndex = '';
-        }
-
         const link = document.createElement('a');
         link.download = `strava-wrapped-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-
-        // Resume auto-advance (optional, maybe better to let user manually resume)
-        // resetAutoAdvance(); 
       }).catch(err => {
-        // Restore background position on error
-        const bg = document.getElementById('gradientSpotlight');
-        if (bg) {
-          bg.style.position = '';
-          bg.style.top = '';
-          bg.style.left = '';
-          bg.style.width = '';
-          bg.style.height = '';
-          bg.style.zIndex = '';
-        }
         console.error('Screenshot failed:', err);
         alert('Could not save image. ' + err.message);
       });

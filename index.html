@@ -498,7 +498,6 @@
     .card-calories,
     .card-activities,
     .card-streak,
-    .card-pace,
     .card-kudos,
     .card-routes,
     .card-morning,
@@ -1321,23 +1320,9 @@
       </svg>
       Connect with Strava
     </button>
-    <div class="demo-link" onclick="loadDemoData()">or view with demo data</div>
   </div>
 
   <!-- Loading Screen -->
-  <div class="loading-screen hidden" id="loadingScreen">
-    <div class="emoji-cycler" id="emojiCycler">🏃</div>
-    <div class="loading-text">Warming up...</div>
-    <div class="loading-progress-container">
-      <div class="loading-progress-bar"></div>
-    </div>
-    <div class="loading-subtext" id="loadingSubtext">Connecting to Strava</div>
-  </div>
-
-  <!-- Debug Log -->
-  <div id="debugLog"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 200px; background: rgba(0,0,0,0.8); color: lime; font-family: monospace; font-size: 12px; overflow-y: auto; z-index: 9999; pointer-events: none; padding: 10px;">
-  </div>
 
   <div class="gradient-spotlight" id="gradientSpotlight"></div>
   <div class="wrapped-content hidden" id="wrappedContent">
@@ -1556,8 +1541,7 @@
 
     </div>
 
-    <!-- 8: Pace & PRs (REMOVED) -->
-    <!-- Removed per user request -->
+
 
     <!-- 9: Kudos -->
     <div class="story-card card-kudos" data-index="8">
@@ -2256,8 +2240,7 @@
         earliestStart: getEarliestStart(stats.startTimes)
       };
 
-      // Format fastest pace
-      stats.fastestKmFormatted = formatPace(stats.fastestKm);
+
 
       // Common start time
       let maxStartTime = 0;
@@ -2508,7 +2491,6 @@
       setTagline('.card-calories .context', taglines.calories);
       setTagline('.card-activities .context', taglines.activities);
       setTagline('.card-streak .context', taglines.streak);
-      setTagline('.card-pace .context', taglines.pace);
       setTagline('.card-kudos .context', taglines.kudos);
       setTagline('.card-routes .context', taglines.routes);
       setTagline('.card-morning .context', taglines.morning);
@@ -2555,14 +2537,6 @@
         streakTag = `Your longest streak was <em>${stats.longestStreak} days</em>. Relentless.`;
       }
 
-      // Pace
-      let paceTag = `Keep pushing your limits.`;
-      if (stats.fastestPaces['5k'] && stats.fastestPaces['5k'].date) {
-        const d = new Date(stats.fastestPaces['5k'].date);
-        const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-        paceTag = `Fastest 5K on <em>${dateStr}</em>.`;
-      }
-
       // Kudos
       const kudosTag = stats.kudos > 100 ? `You're kind of a <em>big deal</em>.` : `Your community showed up for you.`;
 
@@ -2590,7 +2564,6 @@
         calories: calsTag,
         activities: activitiesTag,
         streak: streakTag,
-        pace: paceTag,
         kudos: kudosTag,
         routes: routesTag,
         morning: morningTag,
@@ -2751,11 +2724,6 @@
       document.getElementById('loginScreen').classList.add('hidden');
     }
 
-    function loadDemoData() {
-      hideLogin();
-      init();
-    }
-
     // Check for OAuth callback or existing session
     function checkAuth() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -2780,14 +2748,7 @@
 
     // Debug Logger
     function debugLog(msg) {
-      const log = document.getElementById('debugLog');
-      if (log) {
-        const line = document.createElement('div');
-        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        log.appendChild(line);
-        log.scrollTop = log.scrollHeight;
-      }
-      console.log(msg);
+      console.log(`[${new Date().toLocaleTimeString()}] ${msg}`);
     }
 
     // Run auth check on load

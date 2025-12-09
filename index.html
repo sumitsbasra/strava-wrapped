@@ -2131,7 +2131,14 @@
         stats.maxElevationGain = Math.max(stats.maxElevationGain, elev); // Single biggest climb (approx as total gain)
         stats.hilliestRun = Math.max(stats.hilliestRun, elev);
         stats.maxCalories = Math.max(stats.maxCalories, cals);
-        stats.maxSpeed = Math.max(stats.maxSpeed, activity.max_speed || 0);
+
+        // Filter out GPS errors (ignore speeds > 35 m/s or ~126 km/h)
+        const speed = activity.max_speed || 0;
+        if (speed < 35) {
+          stats.maxSpeed = Math.max(stats.maxSpeed, speed);
+        } else {
+          debugLog(`Ignored unrealistic max speed: ${speed} m/s (${(speed * 3.6).toFixed(1)} km/h) in activity ${activity.id}`);
+        }
 
         // Activity types
         const type = activity.type || 'Other';

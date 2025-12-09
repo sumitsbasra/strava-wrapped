@@ -1997,6 +1997,7 @@
         });
 
         const data = await response.json();
+        alert(`Debug: Response data: ${JSON.stringify(data)}`);
 
         if (data.access_token) {
           localStorage.setItem('strava_access_token', data.access_token);

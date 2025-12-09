@@ -543,6 +543,7 @@
       margin-left: 8px;
       transform: skewX(-6deg);
       display: inline-block;
+      letter-spacing: 0.05em;
     }
 
     .context {
@@ -1311,7 +1312,7 @@
     <div class="login-logo">2025</div>
     <div class="login-subtitle">Wrapped</div>
     <p class="login-description">
-      Connect your Strava account to see your personalized year in review with all your stats, PRs, and achievements.
+      Connect your Strava account to see a personalized year in review with all your stats, PRs, and achievements.
     </p>
     <button class="strava-btn" onclick="connectStrava()">
       <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1558,19 +1559,19 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Kudos Received</div>
-          <div class="stat-huge"><span class="counter" data-target="4287">0</span></div>
+          <div class="stat-huge"><span class="counter" data-target="0">0</span></div>
           <div class="context">Your community showed up for you.</div>
           <div class="mini-cards-row">
             <div class="mini-card">
-              <div class="mini-card-value">13.7</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">avg</div>
             </div>
             <div class="mini-card">
-              <div class="mini-card-value">89</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">best</div>
             </div>
             <div class="mini-card">
-              <div class="mini-card-value">1,247</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">comments</div>
             </div>
           </div>
@@ -1586,22 +1587,22 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Segments Conquered</div>
-          <div class="stat-huge"><span class="counter" data-target="73">0</span></div>
+          <div class="stat-huge"><span class="counter" data-target="0">0</span></div>
           <div class="context">Your favorite stomping grounds.</div>
           <div class="mini-cards-row">
             <div class="mini-card">
               <div class="mini-card-icon">🏆</div>
-              <div class="mini-card-value">1</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">legend</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-icon">🔁</div>
-              <div class="mini-card-value">47</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">efforts</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-icon">🥇</div>
-              <div class="mini-card-value">3</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">podiums</div>
             </div>
           </div>
@@ -1617,15 +1618,15 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Favorite Start Time</div>
-          <div class="stat-huge">6:34<span class="stat-unit">AM</span></div>
+          <div class="stat-huge">--:--<span class="stat-unit">AM</span></div>
           <div class="context">You're an <em>early bird</em>.</div>
           <div class="mini-cards-row">
             <div class="mini-card">
-              <div class="mini-card-value">67%</div>
+              <div class="mini-card-value">0%</div>
               <div class="mini-card-label">before 8am</div>
             </div>
             <div class="mini-card">
-              <div class="mini-card-value">4:47</div>
+              <div class="mini-card-value">--:--</div>
               <div class="mini-card-label">earliest</div>
             </div>
           </div>
@@ -1647,33 +1648,33 @@
       <div class="hero-section">
         <div class="stat-content">
           <div class="label">Personal Records</div>
-          <div class="stat-huge"><span class="counter" data-target="23">0</span></div>
+          <div class="stat-huge"><span class="counter" data-target="0">0</span></div>
           <div class="context">A year of breakthroughs.</div>
           <div class="mini-cards-row pr-cards-row" id="prCardsRow">
             <div class="mini-card">
               <div class="mini-card-icon">🥇</div>
               <div class="mini-card-value">1mi</div>
-              <div class="mini-card-label">5:58</div>
+              <div class="mini-card-label">--:--</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-icon">🥇</div>
               <div class="mini-card-value">5K</div>
-              <div class="mini-card-label">19:47</div>
+              <div class="mini-card-label">--:--</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-icon">🥇</div>
               <div class="mini-card-value">10K</div>
-              <div class="mini-card-label">41:23</div>
+              <div class="mini-card-label">--:--</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-icon">🥇</div>
               <div class="mini-card-value">Half</div>
-              <div class="mini-card-label">1:38:12</div>
+              <div class="mini-card-label">--:--</div>
             </div>
             <div class="mini-card">
               <div class="mini-card-icon">🥇</div>
               <div class="mini-card-value">Full</div>
-              <div class="mini-card-label">3:28:44</div>
+              <div class="mini-card-label">--:--</div>
             </div>
           </div>
         </div>
@@ -1690,19 +1691,19 @@
           <div class="label">Best Month</div>
           <div class="stat-huge"
             style="font-family: 'Instrument Serif', serif; font-style: italic; transform: none; line-height: 1.2; padding: 0.2em 0.5em; overflow: visible; width: 100vw; max-width: none; margin-left: -24px; margin-right: -24px;">
-            October</div>
+            Month</div>
           <div class="context">You were <em>on fire</em>.</div>
           <div class="mini-cards-row">
             <div class="mini-card">
-              <div class="mini-card-value">387</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">km</div>
             </div>
             <div class="mini-card">
-              <div class="mini-card-value">34</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">activities</div>
             </div>
             <div class="mini-card">
-              <div class="mini-card-value">3</div>
+              <div class="mini-card-value">0</div>
               <div class="mini-card-label">PRs</div>
             </div>
           </div>
@@ -1713,7 +1714,7 @@
   </div>
 
   <!-- 14: Summary -->
-  <div class="story-card card-summary" data-index="14">
+  <div class="story-card card-summary" data-index="13">
     <div class="noise"></div>
     <div class="summary-wrap">
       <div class="summary-header">
@@ -1756,7 +1757,7 @@
   </div> <!-- end wrapped-content -->
 
   <script>
-    const TOTAL_CARDS = 15;
+    const TOTAL_CARDS = 14;
     const AUTO_ADVANCE_TIME = 15000;
     let currentIndex = 0;
     let autoAdvanceTimer = null;
@@ -1771,13 +1772,13 @@
       ['#FF4D00', '50%', '75%', '#FFD700', '50%', '20%', '#181005'],      // 5: calories
       ['#00D4FF', '20%', '25%', '#8B5CF6', '80%', '75%', '#080a15'],      // 6: activities
       ['#FF4D00', '75%', '30%', '#FF3366', '25%', '75%', '#180805'],      // 7: streak
-      ['#8B5CF6', '30%', '65%', '#00D4FF', '70%', '30%', '#0a0815'],      // 8: pace
-      ['#00FFB2', '65%', '35%', '#FFD700', '30%', '70%', '#081510'],      // 9: kudos
-      ['#FFD700', '35%', '70%', '#FF4D00', '70%', '25%', '#151005'],      // 10: routes
-      ['#FFD700', '55%', '25%', '#FF4D00', '40%', '80%', '#151008'],      // 11: morning
-      ['#FFD700', '70%', '30%', '#FF4D00', '25%', '70%', '#151008'],      // 12: records
-      ['#00D4FF', '35%', '70%', '#00FFB2', '65%', '25%', '#051515'],      // 13: month
-      ['#FF4D00', '45%', '35%', '#8B5CF6', '70%', '75%', '#150810'],      // 14: summary
+      // Pace card removed
+      ['#00FFB2', '65%', '35%', '#FFD700', '30%', '70%', '#081510'],      // 8: kudos
+      ['#FFD700', '35%', '70%', '#FF4D00', '70%', '25%', '#151005'],      // 9: routes
+      ['#FFD700', '55%', '25%', '#FF4D00', '40%', '80%', '#151008'],      // 10: morning
+      ['#FFD700', '70%', '30%', '#FF4D00', '25%', '70%', '#151008'],      // 11: records
+      ['#00D4FF', '35%', '70%', '#00FFB2', '65%', '25%', '#051515'],      // 12: month
+      ['#FF4D00', '45%', '35%', '#8B5CF6', '70%', '75%', '#150810'],      // 13: summary
     ];
 
     function updateGradient(index) {
@@ -2388,8 +2389,8 @@
       updateCounter('[data-index="5"] .counter', stats.totalCaloriesK);
       updateCounter('[data-index="6"] .counter', stats.totalActivities);
       updateCounter('[data-index="7"] .counter', stats.longestStreak);
-      updateCounter('[data-index="9"] .counter', stats.kudos);
-      updateCounter('[data-index="10"] .counter', stats.uniqueRoutesCount);
+      updateCounter('[data-index="8"] .counter', stats.kudos);
+      updateCounter('[data-index="9"] .counter', stats.uniqueRoutesCount);
       updateCounter('[data-index="11"] .counter', stats.prs);
 
       // Distance Card Mini-stats

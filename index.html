@@ -147,30 +147,66 @@
       pointer-events: none;
     }
 
-    .loading-spinner {
-      width: 48px;
-      height: 48px;
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-top-color: var(--strava-orange);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .emoji-cycler {
+      font-size: 4rem;
       margin-bottom: 24px;
+      animation: bounce 1s infinite alternate;
     }
 
-    @keyframes spin {
+    @keyframes bounce {
+      from {
+        transform: translateY(0);
+      }
+
       to {
-        transform: rotate(360deg);
+        transform: translateY(-10px);
+      }
+    }
+
+    .loading-progress-container {
+      width: 200px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .loading-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--strava-orange);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+      animation: progressIndeterminate 2s infinite linear;
+    }
+
+    @keyframes progressIndeterminate {
+      0% {
+        width: 0%;
+        transform: translateX(-100%);
+      }
+
+      50% {
+        width: 50%;
+      }
+
+      100% {
+        width: 100%;
+        transform: translateX(100%);
       }
     }
 
     .loading-text {
-      font-size: 1rem;
-      opacity: 0.7;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 24px;
+      letter-spacing: 0.05em;
     }
 
     .loading-subtext {
-      font-size: 0.85rem;
-      opacity: 0.4;
+      font-size: 0.9rem;
+      opacity: 0.5;
       margin-top: 8px;
     }
 
@@ -1287,9 +1323,12 @@
 
   <!-- Loading Screen -->
   <div class="loading-screen hidden" id="loadingScreen">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Crunching your numbers...</div>
-    <div class="loading-subtext" id="loadingSubtext">Fetching activities</div>
+    <div class="emoji-cycler" id="emojiCycler">🏃</div>
+    <div class="loading-text">Warming up...</div>
+    <div class="loading-progress-container">
+      <div class="loading-progress-bar"></div>
+    </div>
+    <div class="loading-subtext" id="loadingSubtext">Connecting to Strava</div>
   </div>
 
   <!-- Debug Log -->
@@ -2638,9 +2677,21 @@
       });
     }
 
+    let emojiInterval;
+    const emojis = ['🏃', '🚴', '🏊', '🚶', '🥾', '💪', '🧘', '⛷️'];
+
     function showLoading(text) {
       document.getElementById('loadingScreen').classList.remove('hidden');
       document.getElementById('loadingSubtext').textContent = text || 'Loading...';
+
+      // Start emoji cycling
+      if (emojiInterval) clearInterval(emojiInterval);
+      let i = 0;
+      const el = document.getElementById('emojiCycler');
+      emojiInterval = setInterval(() => {
+        el.textContent = emojis[i];
+        i = (i + 1) % emojis.length;
+      }, 500);
     }
 
     function updateLoadingText(text) {
@@ -2649,6 +2700,7 @@
 
     function hideLoading() {
       document.getElementById('loadingScreen').classList.add('hidden');
+      if (emojiInterval) clearInterval(emojiInterval);
     }
 
     function hideLogin() {
@@ -2673,6 +2725,7 @@
         const token = localStorage.getItem('strava_access_token');
         if (token) {
           debugLog('Found existing token, fetching activities...');
+          showLoading('Welcome back! Fetching your year...');
           athleteData = JSON.parse(localStorage.getItem('strava_athlete') || 'null');
           fetchAllActivities(token);
         } else {

@@ -2079,16 +2079,22 @@
         }
       };
 
-      activities.forEach(activity => {
+      activities.forEach((activity, index) => {
         // Basic stats
         const dist = activity.distance || 0;
         const time = activity.moving_time || 0;
         const elev = activity.total_elevation_gain || 0;
-        const cals = activity.calories || 0;
+        // Strava summary activities might not have calories, but rides have kilojoules
+        let cals = activity.calories || 0;
+        if (!cals && activity.kilojoules) {
+          cals = activity.kilojoules; // Rough approximation for cycling
+        }
+
         const date = new Date(activity.start_date);
 
-        if (stats.totalActivities < 5) {
-          debugLog(`Activity ${activity.id}: dist=${dist}, cals=${cals}, type=${activity.type}`);
+        if (index < 5) {
+          debugLog(`Activity ${activity.id} (${activity.type}): dist=${dist}, cals=${cals} (raw: ${activity.calories}, kj: ${activity.kilojoules})`);
+          if (index === 0) debugLog(`Keys: ${Object.keys(activity).join(', ')}`);
         }
 
         stats.totalDistance += dist;

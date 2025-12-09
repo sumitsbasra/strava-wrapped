@@ -548,7 +548,9 @@
       opacity: 0.7;
       margin-left: 8px;
       transform: skewX(-6deg);
-      display: inline-block;
+      display: inline-flex;
+      align-items: baseline;
+      justify-content: center;
       letter-spacing: 0.04em;
       white-space: nowrap;
       /* Prevent wrapping */
@@ -2871,7 +2873,7 @@
         htmlToImage.toPng(node, {
           width: window.innerWidth,
           height: window.innerHeight,
-          cacheBust: true, // Force reload images
+          pixelRatio: 2, // Ensure high quality
           style: {
             transform: 'scale(1)',
             transformOrigin: 'top left',

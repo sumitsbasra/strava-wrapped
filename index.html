@@ -2865,6 +2865,14 @@
       const node = document.body;
 
       htmlToImage.toPng(node, {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        style: {
+          transform: 'scale(1)', // Prevent any scaling issues
+          transformOrigin: 'top left',
+          width: window.innerWidth + 'px',
+          height: window.innerHeight + 'px'
+        },
         filter: (node) => {
           // Exclude UI elements
           if (node.id === 'saveBtn' || node.id === 'debugLog') return false;
@@ -2876,7 +2884,6 @@
           const link = document.createElement('a');
           link.download = `strava-wrapped-${Date.now()}.png`;
           link.href = dataUrl;
-          link.click();
         })
         .catch(function (error) {
           console.error('Screenshot failed:', error);

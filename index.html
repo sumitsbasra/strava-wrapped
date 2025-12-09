@@ -539,6 +539,11 @@
       line-height: 0.85;
       letter-spacing: -0.02em;
       transform: skewX(-6deg);
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      flex-wrap: nowrap;
+      white-space: nowrap;
     }
 
     .stat-unit {
@@ -2869,11 +2874,21 @@
       const node = document.body;
 
       // Ensure fonts are loaded
-      document.fonts.ready.then(() => {
+      document.fonts.ready.then(async () => {
+        // Fetch font CSS manually to ensure it's embedded
+        let fontCss = '';
+        try {
+          const response = await fetch('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+          fontCss = await response.text();
+        } catch (e) {
+          console.warn('Failed to fetch font CSS:', e);
+        }
+
         htmlToImage.toPng(node, {
           width: window.innerWidth,
           height: window.innerHeight,
-          pixelRatio: 2, // Ensure high quality
+          pixelRatio: 2,
+          fontEmbedCSS: fontCss, // Explicitly embed fonts
           style: {
             transform: 'scale(1)',
             transformOrigin: 'top left',

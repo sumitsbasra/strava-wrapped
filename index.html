@@ -213,6 +213,55 @@
       margin-top: 8px;
     }
 
+    /* Error Screen */
+    .error-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 2002;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      background: var(--night);
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      text-align: center;
+    }
+
+    .error-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .error-title {
+      font-family: 'Teko', sans-serif;
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 700;
+      line-height: 0.9;
+      margin-bottom: 24px;
+      transform: skewX(-6deg);
+      background: linear-gradient(180deg, var(--rose) 20%, var(--orange-hot) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .error-message {
+      font-size: 1.1rem;
+      opacity: 0.8;
+      max-width: 500px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .error-note {
+      font-size: 0.9rem;
+      opacity: 0.5;
+      font-style: italic;
+      font-family: 'Instrument Serif', serif;
+    }
+
     /* Wrapped content wrapper */
     .wrapped-content {
       transition: opacity 0.5s ease;
@@ -1337,6 +1386,19 @@
     </div>
   </div>
 
+  <!-- Error Screen -->
+  <div class="error-screen hidden" id="errorScreen">
+    <div class="error-title">Limit Reached</div>
+    <p class="error-message">
+      We're waiting to expand our API access to support as many athletes as we can.
+    </p>
+    <p class="error-note">Please check back later.</p>
+    <button class="strava-btn" onclick="window.location.reload()"
+      style="margin-top: 32px; background: rgba(255,255,255,0.1);">
+      Try Again
+    </button>
+  </div>
+
   <div class="gradient-spotlight" id="gradientSpotlight"></div>
   <div class="wrapped-content hidden" id="wrappedContent">
     <div class="progress-container" id="progressContainer"></div>
@@ -1942,6 +2004,15 @@
         });
 
         const data = await response.json();
+
+        if (!response.ok) {
+          if (response.status === 403) {
+            hideLoading();
+            document.getElementById('errorScreen').classList.remove('hidden');
+            return;
+          }
+          throw new Error(data.error || 'Failed to get access token');
+        }
 
         if (data.access_token) {
           localStorage.setItem('strava_access_token', data.access_token);

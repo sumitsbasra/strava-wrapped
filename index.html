@@ -2048,6 +2048,8 @@
         totalActivities: activities.length,
         activityTypes: {},
         kudos: 0,
+        maxKudos: 0,
+        totalComments: 0,
         maxHeartRate: 0,
         avgHeartRate: 0,
         heartRateCount: 0,
@@ -2103,9 +2105,11 @@
         stats.totalElevation += elev;
         stats.totalCalories += cals;
         stats.kudos += activity.kudos_count || 0;
+        stats.totalComments += activity.comment_count || 0;
         stats.prs += activity.pr_count || 0;
 
         // Max/Best tracking
+        stats.maxKudos = Math.max(stats.maxKudos, activity.kudos_count || 0);
         stats.longestActivityDist = Math.max(stats.longestActivityDist, dist);
         stats.longestActivityTime = Math.max(stats.longestActivityTime, time);
         stats.maxElevationGain = Math.max(stats.maxElevationGain, elev); // Single biggest climb (approx as total gain)
@@ -2369,8 +2373,15 @@
 
       // Kudos Card
       updateMiniCard('.card-kudos', 0, (stats.kudos / stats.totalActivities).toFixed(1));
-      updateMiniCard('.card-kudos', 1, '--'); // Best kudos not tracked yet
-      updateMiniCard('.card-kudos', 2, '--'); // Given not available
+      updateMiniCard('.card-kudos', 1, stats.maxKudos);
+      updateMiniCard('.card-kudos', 2, stats.totalComments);
+
+      // Update label for the 3rd card since we changed it from Given to Comments
+      const kudosCard = document.querySelector('.card-kudos');
+      if (kudosCard) {
+        const labels = kudosCard.querySelectorAll('.mini-card-label');
+        if (labels[2]) labels[2].textContent = 'comments';
+      }
 
       // Routes Card
       // (Placeholders for now as we don't have segment data)

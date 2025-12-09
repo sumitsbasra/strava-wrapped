@@ -1325,11 +1325,10 @@
   <!-- Loading Screen -->
   <div class="loading-screen hidden" id="loadingScreen">
     <div class="emoji-cycler" id="emojiCycler">🏃</div>
-    <div class="loading-text">Warming up...</div>
+    <div class="loading-text" id="loadingText">Warming up...</div>
     <div class="loading-progress-container">
       <div class="loading-progress-bar"></div>
     </div>
-    <div class="loading-subtext" id="loadingSubtext">Connecting to Strava</div>
   </div>
 
   <div class="gradient-spotlight" id="gradientSpotlight"></div>
@@ -2702,12 +2701,13 @@
     }
 
     let emojiInterval;
+    let textInterval;
     const emojis = ['🏃', '🚴', '🏊', '🚶', '🥾', '💪', '🧘', '⛷️'];
+    const loadingPhrases = ['Warming up...', 'Stretching...', 'Processing your year...'];
 
-    function showLoading(text) {
+    function showLoading() {
       document.getElementById('loadingScreen').classList.remove('hidden');
       hideLogin(); // Explicitly hide login screen
-      document.getElementById('loadingSubtext').textContent = text || 'Loading...';
 
       // Start emoji cycling
       if (emojiInterval) clearInterval(emojiInterval);
@@ -2717,15 +2717,26 @@
         el.textContent = emojis[i];
         i = (i + 1) % emojis.length;
       }, 500);
+
+      // Start text cycling
+      if (textInterval) clearInterval(textInterval);
+      let j = 0;
+      const textEl = document.getElementById('loadingText');
+      textEl.textContent = loadingPhrases[0];
+      textInterval = setInterval(() => {
+        j = (j + 1) % loadingPhrases.length;
+        textEl.textContent = loadingPhrases[j];
+      }, 2000);
     }
 
     function updateLoadingText(text) {
-      document.getElementById('loadingSubtext').textContent = text;
+      // No-op as requested by user
     }
 
     function hideLoading() {
       document.getElementById('loadingScreen').classList.add('hidden');
       if (emojiInterval) clearInterval(emojiInterval);
+      if (textInterval) clearInterval(textInterval);
     }
 
     function hideLogin() {

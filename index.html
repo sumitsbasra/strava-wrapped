@@ -1650,8 +1650,43 @@
 
     </div>
 
+    <!-- 11: Through It All -->
+    <div class="story-card card-weather" data-index="11">
+      <div class="noise"></div>
+      <div class="grid-overlay"></div>
+      <div class="hero-section">
+        <div class="stat-content">
+          <div class="label">Through It All</div>
+          <div class="stat-huge"><span class="counter" data-target="0">0</span></div>
+          <div class="context">You didn't let the elements stop you.</div>
+          <div class="mini-cards-row">
+            <div class="mini-card">
+              <div class="mini-card-icon">🌧️</div>
+              <div class="mini-card-value">0</div>
+              <div class="mini-card-label">rainy days</div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-icon">🥶</div>
+              <div class="mini-card-value">--°</div>
+              <div class="mini-card-label">coldest</div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-icon">🔥</div>
+              <div class="mini-card-value">--°</div>
+              <div class="mini-card-label">hottest</div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-icon">☀️</div>
+              <div class="mini-card-value">0%</div>
+              <div class="mini-card-label">sunny</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 12: Records -->
-    <div class="story-card card-records" data-index="11">
+    <div class="story-card card-records" data-index="12">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="hero-section">
@@ -1692,7 +1727,7 @@
     </div>
 
     <!-- 13: Best Month -->
-    <div class="story-card card-month" data-index="12">
+    <div class="story-card card-month" data-index="13">
       <div class="noise"></div>
       <div class="grid-overlay"></div>
       <div class="hero-section">
@@ -1723,7 +1758,7 @@
   </div>
 
   <!-- 14: Summary -->
-  <div class="story-card card-summary" data-index="13">
+  <div class="story-card card-summary" data-index="14">
     <div class="noise"></div>
     <div class="summary-wrap">
       <div class="summary-header">
@@ -1759,6 +1794,10 @@
           <div class="summary-num">47</div>
           <div class="summary-lbl">Day Streak</div>
         </div>
+        <div class="summary-stat">
+          <div class="summary-num">0</div>
+          <div class="summary-lbl">Rainy Days</div>
+        </div>
       </div>
     </div>
 
@@ -1766,28 +1805,28 @@
   </div> <!-- end wrapped-content -->
 
   <script>
-    const TOTAL_CARDS = 14;
+    const TOTAL_CARDS = 15;
     const AUTO_ADVANCE_TIME = 15000;
     let currentIndex = 0;
     let autoAdvanceTimer = null;
 
-    // Gradient spotlight config for each card: [color1, x1, y1, color2, x2, y2, baseColor]
+    // Gradient configs for each card (0-14)
     const gradientConfigs = [
-      ['#FF4D00', '50%', '30%', '#8B5CF6', '20%', '80%', '#1a0a10'],      // 0: intro
-      ['#00D4FF', '70%', '20%', '#00FFB2', '20%', '75%', '#051518'],      // 1: distance
-      ['#FF3366', '30%', '75%', '#FF4D00', '75%', '25%', '#180a10'],      // 2: time
-      ['#00FFB2', '25%', '25%', '#00D4FF', '75%', '80%', '#051510'],      // 3: elevation
-      ['#FF3366', '65%', '35%', '#8B5CF6', '25%', '70%', '#150810'],      // 4: heartrate
-      ['#FF4D00', '50%', '75%', '#FFD700', '50%', '20%', '#181005'],      // 5: calories
-      ['#00D4FF', '20%', '25%', '#8B5CF6', '80%', '75%', '#080a15'],      // 6: activities
-      ['#FF4D00', '75%', '30%', '#FF3366', '25%', '75%', '#180805'],      // 7: streak
-      // Pace card removed
-      ['#00FFB2', '65%', '35%', '#FFD700', '30%', '70%', '#081510'],      // 8: kudos
-      ['#FFD700', '35%', '70%', '#FF4D00', '70%', '25%', '#151005'],      // 9: routes
-      ['#FFD700', '55%', '25%', '#FF4D00', '40%', '80%', '#151008'],      // 10: morning
-      ['#FFD700', '70%', '30%', '#FF4D00', '25%', '70%', '#151008'],      // 11: records
-      ['#00D4FF', '35%', '70%', '#00FFB2', '65%', '25%', '#051515'],      // 12: month
-      ['#FF4D00', '45%', '35%', '#8B5CF6', '70%', '75%', '#150810'],      // 13: summary
+      { colors: ['#FF4D00', '#FF7F6B', '#0A0A0A'], angle: 135 }, // 0: Intro
+      { colors: ['#00D4FF', '#00FFB2', '#0A0A0A'], angle: 45 },  // 1: Distance
+      { colors: ['#8B5CF6', '#FF3366', '#0A0A0A'], angle: 160 }, // 2: Time
+      { colors: ['#FFD700', '#FF4D00', '#0A0A0A'], angle: 20 },  // 3: Elevation
+      { colors: ['#FF3366', '#FF7F6B', '#0A0A0A'], angle: 180 }, // 4: Heart Rate
+      { colors: ['#00FFB2', '#00D4FF', '#0A0A0A'], angle: 90 },  // 5: Calories
+      { colors: ['#8B5CF6', '#00D4FF', '#0A0A0A'], angle: 300 }, // 6: Activities
+      { colors: ['#FF4D00', '#FFD700', '#0A0A0A'], angle: 60 },  // 7: Streak
+      { colors: ['#FF3366', '#8B5CF6', '#0A0A0A'], angle: 220 }, // 8: Kudos
+      { colors: ['#FFD700', '#FF7F6B', '#0A0A0A'], angle: 10 },  // 9: Routes
+      { colors: ['#FF7F6B', '#FF4D00', '#0A0A0A'], angle: 150 }, // 10: Morning
+      { colors: ['#00D4FF', '#8B5CF6', '#0A0A0A'], angle: 190 }, // 11: Weather (New)
+      { colors: ['#00FFB2', '#FFD700', '#0A0A0A'], angle: 80 },  // 12: Records
+      { colors: ['#FF3366', '#FF4D00', '#0A0A0A'], angle: 320 }, // 13: Best Month
+      { colors: ['#0A0A0A', '#1A1A1A', '#000000'], angle: 180 }  // 14: Summary
     ];
 
     function updateGradient(index) {
@@ -2018,38 +2057,51 @@
       }
     }
 
-    function processAndDisplayData() {
+    async function processAndDisplayData() {
       debugLog('processAndDisplayData started');
-      try {
-        debugLog('Calculating stats...');
-        const stats = calculateStats(activitiesData);
-        debugLog('Stats calculated. Updating UI...');
-        updateUIWithStats(stats);
+      // Process activities
+      debugLog(`Processing ${activitiesData.length} activities...`);
 
-        // Re-render charts with real data
-        debugLog('Rendering charts...');
-        createHeatmap(stats.heatmapData);
-        createTimeBars(stats.timeDistribution);
-        createMonthBars(stats.monthlyDistance);
+      // Fetch weather data (in background or blocking? Blocking for now to ensure stats are ready)
+      // We'll limit to top 50 significant activities to avoid rate limits/long wait times for this demo
+      // or implement a smart batcher. For now, let's try to fetch for all but with a concurrency limit.
+      // Actually, for a "Wrapped" experience, waiting 10-20s might be too much. 
+      // Let's fetch weather ONLY for the "significant" ones (longest, fastest, etc) AND a random sample for stats?
+      // No, user wants "Total rainy days". We need all.
+      // Let's try to fetch in batches of 10 with a delay.
 
-        hideLoading();
-        hideLogin();
+      updateLoadingText('Checking the forecast...');
+      const activitiesWithWeather = await fetchWeatherForActivities(activitiesData);
 
-        // Initialize other UI elements
-        debugLog('Initializing UI components...');
-        document.getElementById('wrappedContent').classList.remove('hidden'); // Reveal the UI!
-        createProgressBars();
-        createKudosHearts();
-        updateProgressBars();
-        updateGradient(0);
-        startAutoAdvance();
-        debugLog('UI Initialization complete');
-      } catch (error) {
-        console.error('Processing error:', error);
-        debugLog(`Processing error: ${error.message}\n${error.stack}`);
-        alert(`Error processing data: ${error.name} - ${error.message}\n${error.stack}`);
-      }
+      const stats = calculateStats(activitiesWithWeather);
+      debugLog('Stats calculated');
+
+      updateUIWithStats(stats);
+      debugLog('UI updated');
+      // Re-render charts with real data
+      debugLog('Rendering charts...');
+      createHeatmap(stats.heatmapData);
+      createTimeBars(stats.timeDistribution);
+      createMonthBars(stats.monthlyDistance);
+
+      hideLoading();
+      hideLogin();
+
+      // Initialize other UI elements
+      debugLog('Initializing UI components...');
+      document.getElementById('wrappedContent').classList.remove('hidden'); // Reveal the UI!
+      createProgressBars();
+      createKudosHearts();
+      updateProgressBars();
+      updateGradient(0);
+      startAutoAdvance();
+      debugLog('UI Initialization complete');
+    } catch (error) {
+      console.error('Processing error:', error);
+      debugLog(`Processing error: ${error.message}\n${error.stack}`);
+      alert(`Error processing data: ${error.name} - ${error.message}\n${error.stack}`);
     }
+
 
     function calculateStats(activities) {
       const stats = {
@@ -2094,7 +2146,18 @@
           '10k': { time: Infinity, date: null },
           'half': { time: Infinity, date: null },
           'marathon': { time: Infinity, date: null }
-        }
+        },
+
+        // Weather Stats
+        rainyDays: 0,
+        snowyDays: 0,
+        sunnyDays: 0,
+        hottestRun: { temp: -100, id: null, date: null },
+        coldestRun: { temp: 100, id: null, date: null },
+        toughWeatherCount: 0,
+
+        // Formatted strings for UI
+        formatted: {}
       };
 
       activities.forEach((activity, index) => {
@@ -2519,6 +2582,13 @@
       updateMiniCard('.card-morning', 1, stats.formatted.earliestStart);
       updateMiniCard('.card-morning', 2, stats.formatted.latestStart);
 
+      // Weather Card
+      updateCounter('[data-index="11"] .counter', stats.toughWeatherCount);
+      updateMiniCard('.card-weather', 0, stats.rainyDays);
+      updateMiniCard('.card-weather', 1, stats.coldestRun.temp !== 100 ? `${Math.round(stats.coldestRun.temp)}°C` : '--');
+      updateMiniCard('.card-weather', 2, stats.hottestRun.temp !== -100 ? `${Math.round(stats.hottestRun.temp)}°C` : '--');
+      updateMiniCard('.card-weather', 3, stats.totalActivities > 0 ? `${Math.round((stats.sunnyDays / stats.totalActivities) * 100)}%` : '0%');
+
       // Records Card
       // (Using same PR data as Pace card for now)
       // Value = Time, Label = Distance
@@ -2702,7 +2772,7 @@
 
     function updateSummary(stats) {
       const summaryValues = document.querySelectorAll('.summary-num');
-      if (summaryValues.length >= 7) {
+      if (summaryValues.length >= 8) {
         summaryValues[0].textContent = `${stats.totalDistanceKm.toLocaleString()} km`;
         summaryValues[1].textContent = stats.totalActivities;
         summaryValues[2].textContent = `${stats.totalTimeHours} hrs`;
@@ -2710,6 +2780,7 @@
         summaryValues[4].textContent = `${stats.totalCaloriesK}k`;
         summaryValues[5].textContent = stats.prs;
         summaryValues[6].textContent = stats.longestStreak;
+        summaryValues[7].textContent = stats.rainyDays;
       }
     }
 
@@ -2781,29 +2852,119 @@
     let textInterval;
     const emojis = ['🏃', '🚴', '🏊', '🚶', '🥾', '💪', '🧘', '⛷️'];
     const loadingPhrases = ['Warming up...', 'Stretching...', 'Processing your year...'];
-
     function showLoading() {
       document.getElementById('loadingScreen').classList.remove('hidden');
       hideLogin(); // Explicitly hide login screen
 
       // Start emoji cycling
       if (emojiInterval) clearInterval(emojiInterval);
-      let i = 0;
-      const el = document.getElementById('emojiCycler');
+      let emojiIndex = 0;
+      const emojiEl = document.querySelector('.loading-emoji');
       emojiInterval = setInterval(() => {
-        el.textContent = emojis[i];
-        i = (i + 1) % emojis.length;
+        emojiEl.textContent = emojis[emojiIndex];
+        emojiIndex = (emojiIndex + 1) % emojis.length;
       }, 500);
 
       // Start text cycling
       if (textInterval) clearInterval(textInterval);
-      let j = 0;
+      let textIndex = 0;
       const textEl = document.getElementById('loadingText');
-      textEl.textContent = loadingPhrases[0];
       textInterval = setInterval(() => {
-        j = (j + 1) % loadingPhrases.length;
-        textEl.textContent = loadingPhrases[j];
+        // Only cycle if not showing custom text
+        if (textEl.textContent.includes('Checking')) return;
+        textEl.textContent = loadingPhrases[textIndex];
+        textIndex = (textIndex + 1) % loadingPhrases.length;
       }, 2000);
+    }
+    async function fetchWeatherForActivities(activities) {
+      // Open-Meteo Rate Limit: ~600/min. We have to be careful.
+      // We will fetch weather for activities that have a valid start_latlng.
+      const validActivities = activities.filter(a => a.start_latlng && a.start_latlng.length === 2);
+      debugLog(`Fetching weather for ${validActivities.length} activities...`);
+
+      // We'll process in chunks to avoid overwhelming the browser/API
+      const chunkSize = 5;
+      const results = [];
+
+      // Create a map for quick lookup
+      const weatherMap = new Map();
+
+      for (let i = 0; i < validActivities.length; i += chunkSize) {
+        const chunk = validActivities.slice(i, i + chunkSize);
+        const promises = chunk.map(async (activity) => {
+          try {
+            const date = activity.start_date.split('T')[0];
+            const hour = new Date(activity.start_date).getHours();
+            const lat = activity.start_latlng[0];
+            const lng = activity.start_latlng[1];
+
+            // Open-Meteo Archive API
+            const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${date}&end_date=${date}&hourly=temperature_2m,precipitation,weathercode,snowfall&timezone=auto`;
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
+            const data = await res.json();
+
+            // Get data for the specific hour
+            if (data.hourly && data.hourly.time) {
+              const hourIndex = data.hourly.time.findIndex(t => new Date(t).getHours() === hour);
+              if (hourIndex !== -1) {
+                const weather = {
+                  temp: data.hourly.temperature_2m[hourIndex],
+                  precip: data.hourly.precipitation[hourIndex],
+                  code: data.hourly.weathercode[hourIndex],
+                  snow: data.hourly.snowfall[hourIndex]
+                };
+                weatherMap.set(activity.id, weather);
+              }
+            }
+          } catch (e) {
+            console.error(`Failed to fetch weather for activity ${activity.id}`, e);
+          }
+        });
+
+        await Promise.all(promises);
+        // Small delay to be nice to the API
+        await new Promise(r => setTimeout(r, 100));
+
+        // Update loading text periodically
+        if (i % 20 === 0) {
+          updateLoadingText(`Checking weather for run ${i}...`);
+        }
+      }
+
+      // Attach weather to activities
+      return activities.map(a => {
+        if (weatherMap.has(a.id)) {
+          a.weather = weatherMap.get(a.id);
+        }
+        return a;
+      });
+    }
+
+    function updateLoadingText(text) {
+      const el = document.getElementById('loadingText');
+      if (el) el.textContent = text;
+    }
+
+    // Start emoji cycling
+    if (emojiInterval) clearInterval(emojiInterval);
+    let i = 0;
+    const el = document.getElementById('emojiCycler');
+    emojiInterval = setInterval(() => {
+      el.textContent = emojis[i];
+      i = (i + 1) % emojis.length;
+    }, 500);
+
+    // Start text cycling
+    if (textInterval) clearInterval(textInterval);
+    let j = 0;
+    const textEl = document.getElementById('loadingText');
+    textEl.textContent = loadingPhrases[0];
+    textInterval = setInterval(() => {
+      j = (j + 1) % loadingPhrases.length;
+      textEl.textContent = loadingPhrases[j];
+    }, 2000);
     }
 
     function updateLoadingText(text) {

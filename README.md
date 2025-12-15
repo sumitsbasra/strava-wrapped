@@ -1,27 +1,27 @@
-# Year in Motion: Strava Wrapped 2025
+# Recap.fit — Your Year in Motion
 
-**Year in Motion** is a personalized visualization of your athletic year. By connecting with Strava, it transforms your raw activity data into a stunning, interactive story that celebrates your hard work, consistency, and achievements.
+A beautiful, privacy-focused fitness year-in-review that connects to your Strava data.
 
-## Key Features
+## Features
+- Visualize your 2025 fitness journey
+- Fully client-side — your data never touches our servers
+- Beautiful animated story-style cards
+- Deep insights: streaks, best month, time preferences, and more
+- Contextual comparisons (e.g., "SF to NYC", "Climbing Everest")
 
-*   **Interactive Story Format**: Navigate through your year card-by-card, just like your favorite social stories.
-*   **Deep Insights**: Go beyond basic totals with stats like "Best Month," "Longest Streak," "Morning vs. Evening" preference, and more.
-*   **Contextual Comparisons**: See your distance and elevation in relatable terms (e.g., "San Francisco to NYC", "Climbing Everest").
-*   **Beautiful Visualizations**:
-    *   **Heatmaps**: Visualize your consistency across the year.
-    *   **Activity Distribution**: See your favorite times to work out.
-    *   **Monthly Progress**: Track your volume month-over-month.
-*   **Privacy Focused**: Your data is processed securely and presented instantly.
+## How It Works
+Users provide their own Strava API credentials. All data processing happens in the browser.
 
-## Tech Stack
+## Setup Your Own
+1. Fork this repo
+2. Enable GitHub Pages (Settings → Pages → Deploy from main branch)
+3. Update the `CNAME` file with your domain (or delete it to use github.io)
+4. Visit your site and follow the onboarding to connect Strava
 
-*   **Frontend**: Vanilla HTML/CSS/JS for maximum performance and design control.
-*   **Design**: Custom CSS with glassmorphism, dynamic gradients, and smooth animations.
-*   **Integration**: Strava API (OAuth 2.0).
-*   **Backend**: Netlify Functions (Serverless) for secure token exchange.
+## Privacy
+- Your Strava API credentials are stored only in your browser's localStorage
+- Your fitness data is fetched directly from Strava to your browser
+- No data is ever sent to any server
 
-## How to Use
-
-1.  Click "Connect with Strava".
-2.  Authorize the app to read your activity data.
-3.  Sit back and watch your Year in Motion unfold!
+## License
+MIT

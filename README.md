@@ -1,8 +1,7 @@
 # 🏃 Recap.fit — Your Year in Motion
 
 A beautiful, privacy-focused fitness year-in-review that transforms your Strava data into a stunning visual story.
-
-![Recap.fit Preview](preview.png)
+![IMG_0850](https://github.com/user-attachments/assets/235770ab-16b7-45b1-80b8-588317c6ba16)
 
 ## ✨ Features
 

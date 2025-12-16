@@ -83,12 +83,120 @@
     }
 
     .login-description {
-      max-width: 400px;
+      max-width: 600px;
       text-align: center;
       font-size: 1rem;
       opacity: 0.6;
       line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .login-emoji {
+      font-size: 5rem;
+      margin-bottom: 32px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .login-title {
+      font-family: 'Teko', sans-serif;
+      font-size: clamp(3rem, 10vw, 5.5rem);
+      font-weight: 700;
+      transform: skewX(-3deg);
+      background: linear-gradient(180deg, var(--cream) 0%, var(--peach) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .login-tagline {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      font-style: italic;
+      opacity: 0.8;
       margin-bottom: 40px;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(0, 255, 178, 0.1);
+      border: 1.5px solid rgba(0, 255, 178, 0.3);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--mint);
+      margin-bottom: 32px;
+    }
+
+    .privacy-badge svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .privacy-badge-bottom {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(0, 255, 178, 0.08);
+      border: 1px solid rgba(0, 255, 178, 0.2);
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--mint);
+      opacity: 0.7;
+      margin-top: auto;
+      margin-bottom: 24px;
+    }
+
+    .privacy-badge-bottom svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .login-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 18px 56px;
+      background: var(--strava-orange);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      margin-bottom: 16px;
+    }
+
+    .login-cta-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 40px rgba(252, 76, 2, 0.4);
+    }
+
+    .login-cta-btn svg {
+      width: 22px;
+      height: 22px;
     }
 
     .strava-btn {
@@ -1363,18 +1471,25 @@
 <body>
   <!-- Login Screen -->
   <div class="login-screen" id="loginScreen">
-    <div class="login-logo">2025</div>
-    <div class="login-subtitle">Wrapped</div>
+    <div class="login-emoji">🏃</div>
+    <h1 class="login-title">Year in Motion</h1>
+    <p class="login-tagline">Get your personalized 2025 fitness recap in 2 minutes</p>
     <p class="login-description">
-      Connect your Strava account to see a personalized year in review with all your stats, PRs, and achievements.
+      This app runs entirely in your browser. You'll connect your own Strava API access — your data never touches our servers.
     </p>
-    <button class="strava-btn" onclick="connectStrava()">
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
+    <button class="login-cta-btn" onclick="connectStrava()">
+      Let's Go
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      Connect with Strava
     </button>
+    <div class="privacy-badge-bottom">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L3 7V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      100% Private
+    </div>
   </div>
 
   <!-- Loading Screen -->
@@ -1988,7 +2103,7 @@
     }
 
     async function exchangeToken(code) {
-      showLoading('Authenticating...');
+      showLoading('Connecting to Strava...');
 
       try {
         // Use our secure serverless function to exchange the code

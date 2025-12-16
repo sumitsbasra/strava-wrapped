@@ -1,27 +1,88 @@
-# Year in Motion: Strava Wrapped 2025
+# 🏃 recap.fit — Your Year in Motion
 
-**Year in Motion** is a personalized visualization of your athletic year. By connecting with Strava, it transforms your raw activity data into a stunning, interactive story that celebrates your hard work, consistency, and achievements.
+A beautiful, privacy-focused fitness year-in-review that transforms your Strava data into a stunning visual story.
+![IMG_0850](https://github.com/user-attachments/assets/fe6840dd-d964-4d08-a794-c5a8afc04e4f)
 
-## Key Features
 
-*   **Interactive Story Format**: Navigate through your year card-by-card, just like your favorite social stories.
-*   **Deep Insights**: Go beyond basic totals with stats like "Best Month," "Longest Streak," "Morning vs. Evening" preference, and more.
-*   **Contextual Comparisons**: See your distance and elevation in relatable terms (e.g., "San Francisco to NYC", "Climbing Everest").
-*   **Beautiful Visualizations**:
-    *   **Heatmaps**: Visualize your consistency across the year.
-    *   **Activity Distribution**: See your favorite times to work out.
-    *   **Monthly Progress**: Track your volume month-over-month.
-*   **Privacy Focused**: Your data is processed securely and presented instantly.
+## ✨ Features
 
-## Tech Stack
+- **15 Animated Story Cards** — Distance, time, elevation, heart rate, streaks, PRs, and more
+- **Beautiful Design** — Gradient backgrounds, smooth animations, mobile-friendly
+- **100% Private** — Fully client-side; your data never leaves your device
+- **No Approval Needed** — Uses your own Strava API credentials
 
-*   **Frontend**: Vanilla HTML/CSS/JS for maximum performance and design control.
-*   **Design**: Custom CSS with glassmorphism, dynamic gradients, and smooth animations.
-*   **Integration**: Strava API (OAuth 2.0).
-*   **Backend**: Netlify Functions (Serverless) for secure token exchange.
+## 🚀 How to Use
 
-## How to Use
+### First-Time Setup (2 minutes)
 
-1.  Click "Connect with Strava".
-2.  Authorize the app to read your activity data.
-3.  Sit back and watch your Year in Motion unfold!
+**Step 1: Create a Strava API App**
+
+1. Go to [strava.com/settings/api](https://www.strava.com/settings/api)
+2. Fill in the form:
+   - **Application Name:** `My Recap` (or anything you like)
+   - **Category:** `Social`
+   - **Club:** (leave blank)
+   - **Website:** `recap.fit`
+   - **Authorization Callback Domain:** `recap.fit`
+3. Click **Create**
+
+**Step 2: Get Your Credentials**
+
+After creating your app, you'll see:
+- **Client ID** — A 5-6 digit number
+- **Client Secret** — A long alphanumeric string
+
+**Step 3: Connect**
+
+1. Visit [recap.fit](https://recap.fit)
+2. Follow the onboarding flow
+3. Paste your Client ID and Client Secret
+4. Click "Connect with Strava"
+5. Authorize the app
+6. Enjoy your personalized 2025 Wrapped! 🎉
+
+### Returning Users
+
+Your credentials are saved in your browser. Just visit [recap.fit](https://recap.fit) and your Wrapped loads automatically.
+
+## 🔒 Privacy & Security
+
+**Your data stays yours.**
+
+- ✅ Credentials stored only in your browser's localStorage
+- ✅ Fitness data fetched directly from Strava to your browser
+- ✅ No server, no database, no tracking
+- ✅ Fully open source — check out the code yourself
+
+We never see your Strava data or API credentials, everything runs locally in your browser!
+
+## 📊 What's Included
+
+| Card | Stats Shown |
+|------|-------------|
+| Intro | Personalized welcome |
+| Distance | Total km, weekly avg, longest run |
+| Time | Hours moving, avg per activity |
+| Elevation | Total climb, biggest climb |
+| Heart Rate | Max, avg, resting change |
+| Calories | Total burned, daily avg |
+| Activities | Breakdown by type |
+| Streak | Longest streak, activity heatmap |
+| Pace & PRs | Best times across distances |
+| Kudos | Given and received |
+| Segments | Local legends, top efforts |
+| Start Time | Favorite workout time |
+| Records | Personal records achieved |
+| Best Month | Your peak month |
+| Summary | Year overview with all key stats |
+
+## 🤝 Contributing
+
+Contributions welcome! Feel free to:
+- Report bugs
+- Suggest features
+- Submit PRs
+
+---
+
+**Built with ❤️ for athletes who want to celebrate their year.**

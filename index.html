@@ -425,6 +425,22 @@
       border-radius: 12px;
       padding: 12px;
       margin: 12px 0 16px 36px;
+      position: relative;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .example-badge {
+      position: absolute;
+      top: -10px;
+      right: 12px;
+      background: var(--night);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.5);
     }
 
     .form-field {
@@ -2102,9 +2118,10 @@
           </div>
           <div class="instruction-item">
             <div class="instruction-number">2</div>
-            <div class="instruction-text">Fill in the form with any values:</div>
+            <div class="instruction-text">On the Strava website, fill in the fields as shown below:</div>
           </div>
           <div class="form-example">
+            <div class="example-badge">Example Only</div>
             <div class="form-field">
               <span class="field-label">Application Name</span>
               <span class="field-value">My Recap <span class="field-hint">(or anything)</span></span>

@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Year In Motion</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
@@ -45,15 +45,32 @@
     /* Login Screen */
     .login-screen {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 2000;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px;
+      padding: calc(40px + env(safe-area-inset-top, 0))
+               max(40px, env(safe-area-inset-right, 40px))
+               calc(40px + env(safe-area-inset-bottom, 0))
+               max(40px, env(safe-area-inset-left, 40px));
       background: var(--night);
       transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .login-screen::before {
+      content: '';
+      position: absolute;
+      top: calc(-1 * env(safe-area-inset-top, 0));
+      left: calc(-1 * env(safe-area-inset-left, 0));
+      right: calc(-1 * env(safe-area-inset-right, 0));
+      bottom: calc(-1 * env(safe-area-inset-bottom, 0));
+      background: var(--night);
+      z-index: -1;
     }
 
     .login-screen.hidden {
@@ -121,8 +138,8 @@
     /* Settings Button on Login Screen */
     .settings-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: calc(20px + env(safe-area-inset-top, 0));
+      right: calc(20px + env(safe-area-inset-right, 0));
       background: rgba(255, 255, 255, 0.1);
       border: none;
       border-radius: 50%;
@@ -146,13 +163,20 @@
     /* Onboarding Screen */
     .onboarding-screen {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      /* Extend into iOS safe areas */
+      padding-top: env(safe-area-inset-top, 0);
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      padding-left: max(24px, env(safe-area-inset-left, 24px));
+      padding-right: max(24px, env(safe-area-inset-right, 24px));
       z-index: 2003;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 24px;
       background: var(--night);
       transition: opacity 0.5s ease, visibility 0.5s ease;
       overflow-y: auto;
@@ -166,15 +190,26 @@
 
     .onboarding-gradient {
       position: absolute;
+      /* Extend beyond safe areas to fill entire screen */
+      top: calc(-1 * env(safe-area-inset-top, 0));
+      left: calc(-1 * env(safe-area-inset-left, 0));
+      right: calc(-1 * env(safe-area-inset-right, 0));
+      bottom: calc(-1 * env(safe-area-inset-bottom, 0));
+      background: var(--night);
+      pointer-events: none;
+    }
+
+    .onboarding-gradient::before {
+      content: '';
+      position: absolute;
       inset: 0;
       background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 77, 0, 0.15) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-      pointer-events: none;
+                  radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
     }
 
     .onboarding-progress {
       position: fixed;
-      top: 24px;
+      top: calc(24px + env(safe-area-inset-top, 0));
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -799,15 +834,32 @@
     /* Loading Screen */
     .loading-screen {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 2001;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px;
+      padding: calc(40px + env(safe-area-inset-top, 0))
+               max(40px, env(safe-area-inset-right, 40px))
+               calc(40px + env(safe-area-inset-bottom, 0))
+               max(40px, env(safe-area-inset-left, 40px));
       background: var(--night);
       transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .loading-screen::before {
+      content: '';
+      position: absolute;
+      top: calc(-1 * env(safe-area-inset-top, 0));
+      left: calc(-1 * env(safe-area-inset-left, 0));
+      right: calc(-1 * env(safe-area-inset-right, 0));
+      bottom: calc(-1 * env(safe-area-inset-bottom, 0));
+      background: var(--night);
+      z-index: -1;
     }
 
     .loading-screen.hidden {
@@ -882,16 +934,33 @@
     /* Error Screen */
     .error-screen {
       position: fixed;
-      inset: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 2002;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px;
+      padding: calc(40px + env(safe-area-inset-top, 0))
+               max(40px, env(safe-area-inset-right, 40px))
+               calc(40px + env(safe-area-inset-bottom, 0))
+               max(40px, env(safe-area-inset-left, 40px));
       background: var(--night);
       transition: opacity 0.5s ease, visibility 0.5s ease;
       text-align: center;
+    }
+
+    .error-screen::before {
+      content: '';
+      position: absolute;
+      top: calc(-1 * env(safe-area-inset-top, 0));
+      left: calc(-1 * env(safe-area-inset-left, 0));
+      right: calc(-1 * env(safe-area-inset-right, 0));
+      bottom: calc(-1 * env(safe-area-inset-bottom, 0));
+      background: var(--night);
+      z-index: -1;
     }
 
     .error-screen.hidden {
@@ -940,7 +1009,10 @@
 
     .gradient-spotlight {
       position: fixed;
-      inset: 0;
+      top: calc(-1 * env(safe-area-inset-top, 0));
+      left: calc(-1 * env(safe-area-inset-left, 0));
+      right: calc(-1 * env(safe-area-inset-right, 0));
+      bottom: calc(-1 * env(safe-area-inset-bottom, 0));
       z-index: 0;
       background: var(--base-color, #0a0a0a);
       overflow: hidden;
@@ -978,9 +1050,9 @@
 
     .progress-container {
       position: fixed;
-      top: 16px;
-      left: 16px;
-      right: 16px;
+      top: calc(16px + env(safe-area-inset-top, 0));
+      left: calc(16px + env(safe-area-inset-left, 0));
+      right: calc(16px + env(safe-area-inset-right, 0));
       display: flex;
       gap: 4px;
       z-index: 1000;
@@ -1018,19 +1090,19 @@
 
     .nav-area {
       position: fixed;
-      top: 50px;
-      bottom: 0;
+      top: calc(50px + env(safe-area-inset-top, 0));
+      bottom: env(safe-area-inset-bottom, 0);
       width: 25%;
       z-index: 100;
       cursor: pointer;
     }
 
     .nav-area.left {
-      left: 0;
+      left: env(safe-area-inset-left, 0);
     }
 
     .nav-area.right {
-      right: 0;
+      right: env(safe-area-inset-right, 0);
     }
 
     .story-card {
@@ -1065,7 +1137,10 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px 24px;
+      padding: calc(40px + env(safe-area-inset-top, 0))
+               calc(24px + env(safe-area-inset-right, 0))
+               calc(40px + env(safe-area-inset-bottom, 0))
+               calc(24px + env(safe-area-inset-left, 0));
       position: relative;
     }
 

@@ -595,6 +595,50 @@
       margin-bottom: 24px;
     }
 
+    /* Units Toggle */
+    .units-toggle-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .units-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--cream);
+    }
+
+    .units-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      padding: 4px;
+    }
+
+    .unit-option {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 100px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: transparent;
+      color: rgba(255, 248, 240, 0.5);
+    }
+
+    .unit-option:hover:not(.active) {
+      color: rgba(255, 248, 240, 0.8);
+    }
+
+    .unit-option.active {
+      background: var(--strava-orange);
+      color: white;
+    }
+
     /* Success Animation */
     .success-content {
       display: flex;
@@ -2273,6 +2317,14 @@
           <span>Your credentials are stored only in your browser and never sent to our servers</span>
         </div>
 
+        <div class="units-toggle-section">
+          <span class="units-label">Units</span>
+          <div class="units-toggle" id="unitsToggle">
+            <button class="unit-option active" data-unit="mi" onclick="setUnit('mi')">mi</button>
+            <button class="unit-option" data-unit="km" onclick="setUnit('km')">km</button>
+          </div>
+        </div>
+
         <button class="onboarding-btn primary" id="saveCredentialsBtn" onclick="saveCredentials()" disabled>
           Save & Connect
           <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
@@ -2966,6 +3018,7 @@
       currentOnboardingStep = 1;
       updateOnboardingStep(1);
       setupCredentialInputs();
+      initUnitToggle();
     }
 
     function hideOnboarding() {
@@ -3060,6 +3113,34 @@
         hideOnboarding();
         connectStrava();
       }, 2000);
+    }
+
+    // ============================================
+    // UNITS TOGGLE
+    // ============================================
+
+    function setUnit(unit) {
+      // Update UI
+      const options = document.querySelectorAll('.unit-option');
+      options.forEach(opt => {
+        if (opt.dataset.unit === unit) {
+          opt.classList.add('active');
+        } else {
+          opt.classList.remove('active');
+        }
+      });
+
+      // Save to localStorage
+      localStorage.setItem('strava_units', unit);
+    }
+
+    function getStoredUnit() {
+      return localStorage.getItem('strava_units') || 'mi';
+    }
+
+    function initUnitToggle() {
+      const storedUnit = getStoredUnit();
+      setUnit(storedUnit);
     }
 
     // ============================================

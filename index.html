@@ -592,6 +592,50 @@
       margin-bottom: 24px;
     }
 
+    /* Units Toggle */
+    .units-toggle-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .units-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--cream);
+    }
+
+    .units-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      padding: 4px;
+    }
+
+    .unit-option {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 100px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: transparent;
+      color: rgba(255, 248, 240, 0.5);
+    }
+
+    .unit-option:hover:not(.active) {
+      color: rgba(255, 248, 240, 0.8);
+    }
+
+    .unit-option.active {
+      background: var(--strava-orange);
+      color: white;
+    }
+
     /* Success Animation */
     .success-content {
       display: flex;
@@ -2261,6 +2305,14 @@
           <span>Your credentials are stored only in your browser and never sent to our servers</span>
         </div>
 
+        <div class="units-toggle-section">
+          <span class="units-label">Units</span>
+          <div class="units-toggle" id="unitsToggle">
+            <button class="unit-option active" data-unit="mi" onclick="setUnit('mi')">mi</button>
+            <button class="unit-option" data-unit="km" onclick="setUnit('km')">km</button>
+          </div>
+        </div>
+
         <button class="onboarding-btn primary" id="saveCredentialsBtn" onclick="saveCredentials()" disabled>
           Save & Connect
           <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
@@ -2954,6 +3006,7 @@
       currentOnboardingStep = 1;
       updateOnboardingStep(1);
       setupCredentialInputs();
+      initUnitToggle();
     }
 
     function hideOnboarding() {
@@ -3048,6 +3101,90 @@
         hideOnboarding();
         connectStrava();
       }, 2000);
+    }
+
+    // ============================================
+    // UNITS TOGGLE
+    // ============================================
+
+    function setUnit(unit) {
+      // Update UI
+      const options = document.querySelectorAll('.unit-option');
+      options.forEach(opt => {
+        if (opt.dataset.unit === unit) {
+          opt.classList.add('active');
+        } else {
+          opt.classList.remove('active');
+        }
+      });
+
+      // Save to localStorage
+      localStorage.setItem('strava_units', unit);
+    }
+
+    function getStoredUnit() {
+      return localStorage.getItem('strava_units') || 'mi';
+    }
+
+    function initUnitToggle() {
+      const storedUnit = getStoredUnit();
+      setUnit(storedUnit);
+    }
+
+    // Unit Conversion Utilities
+    function metersToMiles(meters) {
+      return meters * 0.000621371;
+    }
+
+    function metersToKm(meters) {
+      return meters / 1000;
+    }
+
+    function metersToFeet(meters) {
+      return meters * 3.28084;
+    }
+
+    function mpsToMph(mps) {
+      return mps * 2.23694;
+    }
+
+    function mpsToKmh(mps) {
+      return mps * 3.6;
+    }
+
+    function getDistanceValue(meters) {
+      const unit = getStoredUnit();
+      return unit === 'km' ? metersToKm(meters) : metersToMiles(meters);
+    }
+
+    function getDistanceUnit() {
+      return getStoredUnit() === 'km' ? 'km' : 'mi';
+    }
+
+    function getElevationValue(meters) {
+      const unit = getStoredUnit();
+      return unit === 'km' ? meters : metersToFeet(meters);
+    }
+
+    function getElevationUnit() {
+      return getStoredUnit() === 'km' ? 'm' : 'ft';
+    }
+
+    function getSpeedValue(mps) {
+      const unit = getStoredUnit();
+      return unit === 'km' ? mpsToKmh(mps) : mpsToMph(mps);
+    }
+
+    function getSpeedUnit() {
+      return getStoredUnit() === 'km' ? 'km/h' : 'mph';
+    }
+
+    function getMarathonDistance() {
+      return getStoredUnit() === 'km' ? 42.195 : 26.2;
+    }
+
+    function getEverestHeight() {
+      return getStoredUnit() === 'km' ? 8849 : 29029;
     }
 
     // ============================================
@@ -3506,27 +3643,21 @@
       stats.longestStreak = calculateLongestStreak(stats.activeDays);
       stats.currentStreak = calculateCurrentStreak(stats.activeDays);
 
-      // Units conversion
-      stats.totalDistanceMiles = Math.round(stats.totalDistance * 0.000621371);
+      // Unit-independent derived values (raw metrics kept for unit conversion at display time)
       stats.totalTimeHours = Math.round(stats.totalTime / 3600);
-      stats.totalElevationFeet = Math.round(stats.totalElevation * 3.28084);
       stats.totalCaloriesK = Math.round(stats.totalCalories / 1000);
       stats.uniqueRoutesCount = stats.uniqueRoutes.size;
+      stats.commonStartHour = 6; // Will be set below
 
       // Calculate total heartbeats (millions)
       const totalMinutes = stats.totalTime / 60;
       const totalBeats = (stats.avgHeartRate || 0) * totalMinutes;
       stats.totalHeartBeatsMillions = (totalBeats / 1000000).toFixed(1);
 
-      // Mini-card formatted values
+      // Unit-independent formatted values (distances/elevations are raw meters)
       stats.formatted = {
-        milesPerWeek: (stats.avgWeeklyDistance * 0.000621371).toFixed(1),
-        bestWeekMiles: (stats.bestWeekDistance * 0.000621371).toFixed(1),
-        longestDistMiles: (stats.longestActivityDist * 0.000621371).toFixed(1),
         avgTimePerActivity: formatDuration(stats.totalTime / stats.totalActivities),
         longestTime: formatDuration(stats.longestActivityTime),
-        biggestClimb: Math.round(stats.maxElevationGain * 3.28084) + 'ft',
-        hilliestRun: Math.round(stats.hilliestRun * 3.28084) + 'ft',
         dailyAvgCalories: Math.round(stats.totalCalories / 365),
         maxCalories: Math.round(stats.maxCalories).toLocaleString(),
         activePercent: Math.round((stats.activeDays.size / 365) * 100) + '%',
@@ -3546,6 +3677,7 @@
           commonHour = hour;
         }
       });
+      stats.commonStartHour = commonHour;
       const ampm = commonHour >= 12 ? 'PM' : 'AM';
       const displayHour = commonHour % 12 || 12;
       stats.commonStartTime = `${displayHour}:00`;
@@ -3683,10 +3815,14 @@
         }
       }
 
-      // Main Counters
-      updateCounter('[data-index="1"] .counter', stats.totalDistanceMiles);
+      const distUnit = getDistanceUnit();
+      const elevUnit = getElevationUnit();
+      const speedUnit = getSpeedUnit();
+
+      // Main Counters (with unit-aware conversions)
+      updateCounter('[data-index="1"] .counter', Math.round(getDistanceValue(stats.totalDistance)));
       updateCounter('[data-index="2"] .counter', stats.totalTimeHours);
-      updateCounter('[data-index="3"] .counter', stats.totalElevationFeet);
+      updateCounter('[data-index="3"] .counter', Math.round(getElevationValue(stats.totalElevation)));
       updateCounter('[data-index="4"] .counter', stats.totalHeartBeatsMillions);
       updateCounter('[data-index="5"] .counter', stats.totalCaloriesK);
       updateCounter('[data-index="6"] .counter', stats.totalActivities);
@@ -3695,18 +3831,38 @@
       updateCounter('[data-index="9"] .counter', stats.uniqueRoutesCount);
       updateCounter('[data-index="11"] .counter', stats.prs);
 
+      // Update main counter units
+      const distanceCard = document.querySelector('[data-index="1"]');
+      if (distanceCard) {
+        const unitEl = distanceCard.querySelector('.stat-unit');
+        if (unitEl) unitEl.textContent = distUnit;
+      }
+      const elevationCard = document.querySelector('[data-index="3"]');
+      if (elevationCard) {
+        const unitEl = elevationCard.querySelector('.stat-unit');
+        if (unitEl) unitEl.textContent = elevUnit;
+      }
+
       // Distance Card Mini-stats
-      updateMiniCard('.card-distance', 0, stats.formatted.milesPerWeek);
-      updateMiniCard('.card-distance', 1, stats.formatted.bestWeekMiles);
-      updateMiniCard('.card-distance', 2, stats.formatted.longestDistMiles);
+      updateMiniCard('.card-distance', 0, getDistanceValue(stats.avgWeeklyDistance).toFixed(1));
+      updateMiniCard('.card-distance', 1, getDistanceValue(stats.bestWeekDistance).toFixed(1));
+      updateMiniCard('.card-distance', 2, getDistanceValue(stats.longestActivityDist).toFixed(1));
+      // Update distance card labels
+      const distCard = document.querySelector('.card-distance');
+      if (distCard) {
+        const labels = distCard.querySelectorAll('.mini-card-label');
+        if (labels[0]) labels[0].textContent = `${distUnit}/week`;
+        if (labels[1]) labels[1].textContent = `best week`;
+        if (labels[2]) labels[2].textContent = `longest`;
+      }
 
       // Time Card Mini-stats
       updateMiniCard('.card-time', 0, stats.formatted.avgTimePerActivity);
       updateMiniCard('.card-time', 1, stats.formatted.longestTime);
 
       // Elevation Card Mini-stats
-      updateMiniCard('.card-elevation', 0, stats.formatted.biggestClimb);
-      updateMiniCard('.card-elevation', 1, stats.formatted.hilliestRun);
+      updateMiniCard('.card-elevation', 0, Math.round(getElevationValue(stats.maxElevationGain)) + elevUnit);
+      updateMiniCard('.card-elevation', 1, Math.round(getElevationValue(stats.hilliestRun)) + elevUnit);
 
       // Heart Rate Card
       updateMiniCard('.card-heartrate', 0, stats.maxHeartRate);
@@ -3760,18 +3916,18 @@
 
       // Routes Card
       // Replacing broken placeholders with real data: Max Speed, Achievements
-      const maxSpeedMph = (stats.maxSpeed * 2.23694).toFixed(1);
-      debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedMph} mph), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
+      const maxSpeedDisplay = getSpeedValue(stats.maxSpeed).toFixed(1);
+      debugLog(`Segments Card Data: MaxSpeed=${stats.maxSpeed} (${maxSpeedDisplay} ${speedUnit}), Achievements=${stats.totalAchievements}, Routes=${stats.uniqueRoutesCount}`);
 
-      updateMiniCard('.card-routes', 0, maxSpeedMph);
+      updateMiniCard('.card-routes', 0, maxSpeedDisplay);
       updateMiniCard('.card-routes', 1, stats.totalAchievements);
-      updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount); // Reusing unique routes count as "Segments" count? Or just hide?
+      updateMiniCard('.card-routes', 2, stats.uniqueRoutesCount);
 
       // Update labels
       const routesCard = document.querySelector('.card-routes');
       if (routesCard) {
         const labels = routesCard.querySelectorAll('.mini-card-label');
-        if (labels[0]) labels[0].textContent = 'max mph';
+        if (labels[0]) labels[0].textContent = `max ${speedUnit}`;
         if (labels[1]) labels[1].textContent = 'achievements';
         if (labels[2]) labels[2].textContent = 'routes';
 
@@ -3811,9 +3967,15 @@
       const monthEl = document.querySelector('[data-index="12"] .stat-huge');
       if (monthEl) monthEl.textContent = months[stats.bestMonth.index];
 
-      updateMiniCard('.card-month', 0, Math.round(stats.bestMonth.distance * 0.000621371));
+      updateMiniCard('.card-month', 0, Math.round(getDistanceValue(stats.bestMonth.distance)));
       updateMiniCard('.card-month', 1, stats.bestMonth.activities);
       updateMiniCard('.card-month', 2, stats.monthlyPRs[stats.bestMonth.index]);
+      // Update best month distance label
+      const monthCard = document.querySelector('.card-month');
+      if (monthCard) {
+        const labels = monthCard.querySelectorAll('.mini-card-label');
+        if (labels[0]) labels[0].textContent = distUnit;
+      }
 
       // Summary Grid
       updateSummary(stats);
@@ -3845,19 +4007,31 @@
     }
 
     function generateTaglines(stats) {
+      // Get unit-converted values for comparisons
+      const totalDistanceDisplay = getDistanceValue(stats.totalDistance);
+      const marathonDist = getMarathonDistance();
+      const everestHeight = getEverestHeight();
+      const totalElevDisplay = getElevationValue(stats.totalElevation);
+      const isMetric = getStoredUnit() === 'km';
+
+      // Distance thresholds (in miles for imperial, km for metric)
+      const earthCircumference = isMetric ? 40075 : 24901;
+      const coastToCoast = isMetric ? 4506 : 2800;
+      const londonBerlin = isMetric ? 966 : 600;
+
       // Distance
       let distanceTag = '';
-      if (stats.totalDistanceMiles > 24901) distanceTag = `You circled the <em>entire Earth</em>!`;
-      else if (stats.totalDistanceMiles > 2800) distanceTag = `That's <em>coast to coast</em> across the USA.`;
-      else if (stats.totalDistanceMiles > 600) distanceTag = `That's <em>London to Berlin</em> and back.`;
-      else distanceTag = `That's <em>${Math.round(stats.totalDistanceMiles / 26.2)} marathons</em> back-to-back.`;
+      if (totalDistanceDisplay > earthCircumference) distanceTag = `You circled the <em>entire Earth</em>!`;
+      else if (totalDistanceDisplay > coastToCoast) distanceTag = `That's <em>coast to coast</em> across the USA.`;
+      else if (totalDistanceDisplay > londonBerlin) distanceTag = `That's <em>London to Berlin</em> and back.`;
+      else distanceTag = `That's <em>${Math.round(totalDistanceDisplay / marathonDist)} marathons</em> back-to-back.`;
 
       // Time
       const days = (stats.totalTimeHours / 24).toFixed(1);
       const timeTag = `That's <em>${days} full days</em> of pure motion.`;
 
       // Elevation
-      const everests = (stats.totalElevationFeet / 29029).toFixed(1);
+      const everests = (totalElevDisplay / everestHeight).toFixed(1);
       const elevationTag = `You climbed <em>${everests}x the height of Everest</em>.`;
 
       // Heart Rate
@@ -3971,11 +4145,13 @@
 
     function updateSummary(stats) {
       const summaryValues = document.querySelectorAll('.summary-num');
+      const distUnit = getDistanceUnit();
+      const elevUnit = getElevationUnit();
       if (summaryValues.length >= 7) {
-        summaryValues[0].textContent = `${stats.totalDistanceMiles.toLocaleString()} mi`;
+        summaryValues[0].textContent = `${Math.round(getDistanceValue(stats.totalDistance)).toLocaleString()} ${distUnit}`;
         summaryValues[1].textContent = stats.totalActivities;
         summaryValues[2].textContent = `${stats.totalTimeHours} hrs`;
-        summaryValues[3].textContent = `${stats.totalElevationFeet.toLocaleString()} ft`;
+        summaryValues[3].textContent = `${Math.round(getElevationValue(stats.totalElevation)).toLocaleString()} ${elevUnit}`;
         summaryValues[4].textContent = `${stats.totalCaloriesK}k`;
         summaryValues[5].textContent = stats.prs;
         summaryValues[6].textContent = stats.longestStreak;
